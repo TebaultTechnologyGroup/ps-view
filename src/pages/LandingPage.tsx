@@ -1,40 +1,85 @@
-import { Container, Text, Button, Stack, Group, Title, Box, ThemeIcon, Paper, Image, TextInput, PasswordInput, Anchor } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from '@mantine/form';
-import classes from './LandingPage.module.css';
-import camundaLogo from '../../public/Logo_White.svg';
+import {
+  Container,
+  Text,
+  Button,
+  Stack,
+  Group,
+  Title,
+  Box,
+  ThemeIcon,
+  Paper,
+  Image,
+  TextInput,
+  PasswordInput,
+  Anchor,
+} from "@mantine/core";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "@mantine/form";
+import classes from "./LandingPage.module.css";
+import camundaLogo from "../../public/Logo_White.svg";
+import { supabase } from "@/lib/supabase-client";
+import { useState } from "react";
 
 export default function LandingPage() {
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const form = useForm({
     initialValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
     validate: {
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
-      password: (value) => (value.length > 0 ? null : 'Password is required'),
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
+      password: (value) => (value.length > 0 ? null : "Password is required"),
     },
   });
 
-  const handleSubmit = (values: typeof form.values) => {
-    console.log('Login attempt:', values);
-    // TODO: Implement actual login logic
-  };
+  const handleSubmit = async (values: typeof form.values) => {
+    console.log("Login attempt:", values);
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: form.values.email,
+        password: form.values.password,
+      });
 
-  const handleLogin = () => {
-    navigate('/login');
+      if (error) {
+        //TODO show error
+        return;
+      }
+
+      if (data.user) {
+        if (data.user.role === "CAMUNDA") {
+          navigate("/admin");
+        } else {
+          navigate("/app");
+        }
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      //TODO: add error
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    
     <Box className={classes.root}>
       {/* Hero Section */}
-      <Box className={classes.hero} style={{ position: 'relative' }}>
-        <Container size="lg" py={80} style={{ position: 'relative', zIndex: 1 }}>
+      <Box className={classes.hero} style={{ position: "relative" }}>
+        <Container
+          size="lg"
+          py={80}
+          style={{ position: "relative", zIndex: 1 }}
+        >
           <Stack gap="xl" align="center" justify="center">
             <Group gap="sm" justify="center">
-              <ThemeIcon size="100px" radius="md" variant="filled" color="#f7b500">
+              <ThemeIcon
+                size="100px"
+                radius="md"
+                variant="filled"
+                color="#f7b500"
+              >
                 <Image src={camundaLogo} />
               </ThemeIcon>
             </Group>
@@ -44,12 +89,12 @@ export default function LandingPage() {
             </Title>
 
             <Text size="xl" className={classes.description} maw={600}>
-              The Camunda delivery portal is your one stop for project information.  Contact your delivery lead for access.
+              The Camunda delivery portal is your one stop for project
+              information. Contact your delivery lead for access.
             </Text>
-           </Stack>
+          </Stack>
         </Container>
       </Box>
-
       {/* Login Section */}
       <Box className={classes.loginSection}>
         <Container size="sm" py={80}>
@@ -67,14 +112,14 @@ export default function LandingPage() {
                   <TextInput
                     label="Email"
                     placeholder="your.email@example.com"
-                    {...form.getInputProps('email')}
+                    {...form.getInputProps("email")}
                   />
 
                   <Stack gap="xs">
                     <PasswordInput
                       label="Password"
                       placeholder="Enter your password"
-                      {...form.getInputProps('password')}
+                      {...form.getInputProps("password")}
                     />
                     <Anchor href="/forgot-password" size="sm" c="#0a84ff">
                       Forgot your password?
@@ -83,6 +128,7 @@ export default function LandingPage() {
 
                   <Button
                     type="submit"
+                    disabled={isLoading}
                     fullWidth
                     size="md"
                     className={classes.button}
@@ -98,7 +144,7 @@ export default function LandingPage() {
             </Text>
           </Stack>
         </Container>
-      </Box>  </Box>
+      </Box>{" "}
+    </Box>
   );
 }
-
