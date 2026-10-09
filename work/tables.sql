@@ -1,0 +1,124 @@
+create table customers (
+  id uuid primary key,
+  name text not null
+);
+
+alter table customers enable row level security;
+
+create table users (
+  id uuid primary key,
+  full_name text,
+  display_name text,
+  email text,
+  locale text,
+  timezone text,
+  country text,
+  city text,
+  customer_id uuid, 
+  active boolean default true,
+  deleted boolean default false,
+  role text not null default 'CUSTOMER',
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  created_by uuid,
+  updated_by uuid
+);
+
+alter table users enable row level security;
+
+create table groups (
+  id uuid primary key,
+  name text,
+  customer_id uuid,
+  deleted boolean default false,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  created_by uuid,
+  updated_by uuid
+);
+
+alter table groups enable row level security;
+
+create table user_groups (
+  group_id uuid not null,
+  user_id uuid not null,
+  updated_at timestamp with time zone not null default now(),
+  updated_by uuid
+);
+
+alter table user_groups enable row level security;
+
+create table portfolios(
+  id uuid primary key,
+  name text,
+  customer_id uuid,
+  deleted boolean default false,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  created_by uuid,
+  updated_by uuid
+);
+
+alter table portfolios enable row level security;
+
+create table projects(
+  id uuid primary key,
+  name text,
+  owner_id uuid,
+  type_id uuid,
+  start_date date,
+  end_date date,
+  customer_id uuid,
+  deleted boolean default false,
+  created_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now(),
+  created_by uuid,
+  updated_by uuid
+);
+
+alter table projects enable row level security;
+
+create table project_permissions(
+  id uuid primary key,
+  project_id uuid,
+  type text default 'user', -- user, group
+  target_id uuid,           -- FK to user or group
+  level text                -- view, edit, owner
+);
+
+alter table project_permissions enable row level security;
+
+create table portfolio_projects(
+  project_id uuid not null,
+  portfolio_id uuid not null,
+  updated_at timestamp with time zone not null default now(),
+  updated_by uuid
+);
+
+alter table portfolio_projects enable row level security;
+
+create table project_types(
+  id uuid primary key,
+  name text,
+  description uuid,
+  active boolean default false  
+);
+
+alter table project_types enable row level security;
+
+create table project_status_reports(
+   id uuid primary key,
+   project_id uuid,
+   project_status_id uuid,
+   comments text,
+   range_start date,
+   range_end date,
+   published_at timestamp with time zone,
+   created_at timestamp with time zone not null default now(),
+   updated_at timestamp with time zone not null default now(),
+   created_by uuid,
+   updated_by uuid
+);
+
+alter table create table project_status_reports enable row level security;
+
