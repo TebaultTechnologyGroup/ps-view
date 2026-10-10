@@ -1,115 +1,102 @@
 .root {
   min-height: 100vh;
-  background-color: #ffffff;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background-color: #f9f9f9;
 }
 
-.hero {
-  background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
-  color: white;
+.brandPanel {
   position: relative;
+  display: flex;
+  align-items: center;
+  padding: 64px;
+  color: white;
   overflow: hidden;
+  background: linear-gradient(135deg, #0a84ff 0%, #0066cc 100%);
 }
 
-.hero::before {
+.brandPanel::before {
   content: '';
   position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
+  inset: -50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 40px 40px;
   animation: float 20s linear infinite;
-  z-index: 0;
 }
 
 @keyframes float {
-  0% {
-    transform: translate(0, 0);
+  to {
+    transform: translate(40px, 40px);
   }
-  100% {
-    transform: translate(50px, 50px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brandPanel::before {
+    animation: none;
   }
+}
+
+.brandContent {
+  position: relative;
+  max-width: 520px;
 }
 
 .title {
-  font-size: 3.5rem;
+  font-size: 3rem;
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.1;
   color: white;
-  position: relative;
-  z-index: 1;
-}
-
-@media (max-width: 768px) {
-  .title {
-    font-size: 2.5rem;
-  }
 }
 
 .description {
-  color: rgba(255, 255, 255, 0.95);
-  position: relative;
-  z-index: 1;
+  color: rgba(255, 255, 255, 0.92);
   line-height: 1.6;
 }
 
-@media (max-width: 768px) {
-  .description {
-    font-size: 1rem;
-  }
+.note {
+  color: rgba(255, 255, 255, 0.75);
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.button {
-  background-color: #f7b500;
-  color: #1a1a1a;
-  border: none;
-  font-weight: 600;
-  padding: 12px 32px;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-}
-
-.button:hover {
-  background-color: #ffbb00;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-.features {
-  background-color: #f9f9f9;
-  border-top: 1px solid #e9ecef;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.card {
-  background-color: white;
-  border: 1px solid #e9ecef;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.card:hover {
-  border-color: #0a84ff;
-  box-shadow: 0 8px 24px rgba(10, 132, 255, 0.15);
-  transform: translateY(-4px);
-}
-
-.cta {
-  background-color: white;
-}
-
-.loginSection {
-  background-color: #f9f9f9;
-  min-height: 600px;
+.formPanel {
   display: flex;
   align-items: center;
-  border-top: 1px solid #e9ecef;
+  justify-content: center;
+  padding: 48px 24px;
 }
 
 .loginCard {
   background-color: white;
   border: 1px solid #e9ecef;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.button {
+  background-color: #f7b500;
+  color: #1a1a1a;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  background-color: #ffbb00;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 900px) {
+  .root {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .brandPanel {
+    padding: 40px 24px;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
 }

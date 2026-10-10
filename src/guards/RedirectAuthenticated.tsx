@@ -1,28 +1,15 @@
-import { Navigate, Outlet, useLocation } from "react-router";
-import { useAuth } from "./AppContext";
-import { Loader2 } from "lucide-react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/guards/AppContext";
+import { AuthLoading } from "@/guards/AuthLoading";
+import { homeFor } from "@/guards/homeFor";
 
+// For public pages (landing/login): signed-in users go straight to their home.
 export function RedirectAuthenticated() {
   const { user, loading } = useAuth();
-  const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <AuthLoading />;
 
-  // Redirect to admin if the user is authenticated and Camunda role
-  // Redirect to app if authenticted and not Camunda role.
-  if (user) {
-    if (user.role = "CAMUNDA"){
-    return <Navigate to="/admin" state={{ from: location }} replace />;    
-    }else{
-    return <Navigate to="/app" state={{ from: location }} replace />;
-    }
-  }
+  if (user) return <Navigate to={homeFor(user.role)} replace />;
 
   return <Outlet />;
 }

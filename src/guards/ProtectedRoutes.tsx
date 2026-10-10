@@ -1,22 +1,17 @@
-import { Navigate, Outlet, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/guards/AppContext";
-import { Loader2 } from "lucide-react";
+import { AuthLoading } from "@/guards/AuthLoading";
 
+// Requires a signed-in user with a usable profile.
 export function ProtectedRoutes() {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <AuthLoading />;
 
-  // Redirect to login, but save the current location so we can send them back
+  // The landing page hosts the login form. Save the location so we can send them back.
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   return <Outlet />;

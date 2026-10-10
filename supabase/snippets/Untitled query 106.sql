@@ -1,11 +1,66 @@
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-  RETURNS TRIGGER
+CREATE TABLE issue_categories (
+  "id"          uuid        primary key,
+   "locale_tag" text not null
+);
+
+alter table issue_categories enable row level security;
+
+create policy issue_categories_access on issue_categories using (
+  (auth.uid() IS NOT NULL)
+);
+
+CREATE TABLE project_issues (
+  "id"          uuid        primary key,
+  "project_id"  uuid        NOT NULL REFERENCES "public"."projects" (id) ON DELETE CASCADE,
+  "issue_number" int        NOT NULL,
+  "issue_id"    text        GENERATED ALWAYS AS ('I' || issue_number::text) STORED,
+  "title"       text        NOT NULL,
+  "description" text,
+   "action_plan" TEXT,
+   "resolution" text,
+  "raised_by"    uuid                     REFERENCES "public"."users" (id),
+  "raised_date" DATE not null default now(),
+  "owner_id"    uuid                     REFERENCES "public"."users" (id),
+  "category_id" uuid                     REFERENCES "public"."issue_categories" (id),
+  "severity"    text,
+  "priority"    text,
+  "has_budget_impact" boolean default false,
+  "has_schedule_impact" boolean default false,
+  "has_scope_impact" boolean default false,
+  "estimated_cost_impact" int default 0,
+  "estimated_days_delayed" int default 0,
+  "currency" text default '$',
+  "status" text default 'New',
+   "target_date" DATE,
+   "actual_date" DATE,
+   "deleted" boolean default false,
+  "created_at"  timestamp with time zone NOT NULL DEFAULT now(),
+  "updated_at"  timestamp with time zone NOT NULL DEFAULT now(),
+  "created_by"  uuid,
+  "updated_by"  uuid
+);
+alter table project_issues enable row level security;
+
+
+CREATE OR REPLACE FUNCTION public.project_issues_assign_number()
+  RETURNS trigger
   LANGUAGE plpgsql
   SECURITY DEFINER
   SET search_path TO ''
   AS $function$
-  begin
-    insert into public.users (id, email) values (new.id, new.email);
-    return new;
-  end;
+  BEGIN
+    IF NEW.issue_number IS NULL THEN
+      -- serialize concurrent inserts for the same project
+      PERFORM pg_advisory_xact_lock(hashtextextended(NEW.project_id::text, 0));
+      SELECT COALESCE(MAX(issue_number), 0) + 1
+        INTO NEW.issue_number
+        FROM public.project_issues
+        WHERE project_id = NEW.project_id;
+    END IF;
+    RETURN NEW;
+  END
   $function$;
+
+CREATE TRIGGER project_issues_assign_number
+  BEFORE INSERT ON "public"."project_issues"
+  FOR EACH ROW EXECUTE FUNCTION public.project_issues_assign_number();

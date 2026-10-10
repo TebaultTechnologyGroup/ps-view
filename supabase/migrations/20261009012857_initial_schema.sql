@@ -122,7 +122,6 @@ ALTER TABLE "public"."user_groups"
 
 CREATE TABLE "public"."users" (
   "id"           uuid                     NOT NULL,
-  "auth_id"      uuid,
   "full_name"    text,
   "display_name" text,
   "email"        text,

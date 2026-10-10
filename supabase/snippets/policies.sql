@@ -34,15 +34,19 @@ CREATE POLICY admin_projects on projects USING (
 CREATE POLICY customer_view ON customers USING (auth.uid() IS NOT NULL);
 
 
-CREATE POLICY user_access ON users USING (
-  -- Current user is CAMUNDA (sees all users)
-  EXISTS (
-    SELECT 1 FROM users WHERE id = auth.uid() AND role = 'CAMUNDA'
+-- CAMUNDA users can manage every row; everyone else only their own.
+-- Non-CAMUNDA users cannot change their own role.
+CREATE POLICY "users_access" ON "public"."users"
+  FOR ALL
+  TO authenticated
+  USING (
+    public.current_user_role() = 'CAMUNDA'
+    OR id = auth.uid()
   )
-  OR
-  -- Current user sees others with same customer_id
-  customer_id = (SELECT customer_id FROM users WHERE id = auth.uid())
-);
+  WITH CHECK (
+    public.current_user_role() = 'CAMUNDA'
+    OR (id = auth.uid() AND role = public.current_user_role())
+  );
 
 -- just make sure user is logged in
 create policy access_user_groups 
@@ -73,3 +77,36 @@ create policy project_types_access on project_types using (
 create policy project_status_reports_access on project_status_reports using (
   (auth.uid() IS NOT NULL)
 );
+
+-- Anyone who can see the project (projects RLS applies inside the subquery) can read its risks.
+CREATE POLICY "project_risks_select" ON "public"."project_risks"
+  FOR SELECT
+  TO authenticated
+  USING (
+    deleted = false
+    AND EXISTS (SELECT 1 FROM public.projects p WHERE p.id = project_risks.project_id)
+  );
+
+-- Only CAMUNDA users can create, change or delete risks.
+CREATE POLICY "project_risks_admin" ON "public"."project_risks"
+  FOR ALL
+  TO authenticated
+  USING (public.current_user_role() = 'CAMUNDA')
+  WITH CHECK (public.current_user_role() = 'CAMUNDA');
+
+
+-- Anyone who can see the project (projects RLS applies inside the subquery) can read its risks.
+CREATE POLICY "project_issues_select" ON "public"."project_issues"
+  FOR SELECT
+  TO authenticated
+  USING (
+    deleted = false
+    AND EXISTS (SELECT 1 FROM public.projects p WHERE p.id = project_issues.project_id)
+  );
+
+-- Only CAMUNDA users can create, change or delete risks.
+CREATE POLICY "project_issues_admin" ON "public"."project_issues"
+  FOR ALL
+  TO authenticated
+  USING (public.current_user_role() = 'CAMUNDA')
+  WITH CHECK (public.current_user_role() = 'CAMUNDA');

@@ -123,3 +123,23 @@ create table project_status_reports(
 
 alter table create table project_status_reports enable row level security;
 
+CREATE TABLE "public"."project_risks" (
+  "id"          uuid                     NOT NULL,
+  "project_id"  uuid                     NOT NULL REFERENCES "public"."projects" (id) ON DELETE CASCADE,
+  "risk_number" integer                  NOT NULL,
+  "risk_id"     text                     GENERATED ALWAYS AS ('R' || risk_number::text) STORED,
+  "title"       text                     NOT NULL,
+  "description" text,
+  "probability" text                     NOT NULL DEFAULT 'medium' CHECK (probability IN ('low', 'medium', 'high')),
+  "impact"      text                     NOT NULL DEFAULT 'medium' CHECK (impact IN ('low', 'medium', 'high')),
+  "status"      text                     NOT NULL DEFAULT 'open'   CHECK (status IN ('open', 'mitigated', 'accepted', 'closed')),
+  "mitigation"  text,
+  "owner_id"    uuid                     REFERENCES "public"."users" (id),
+  "due_date"    date,
+  "deleted"     boolean                  NOT NULL DEFAULT false,
+  "created_at"  timestamp with time zone NOT NULL DEFAULT now(),
+  "updated_at"  timestamp with time zone NOT NULL DEFAULT now(),
+  "created_by"  uuid,
+  "updated_by"  uuid,
+  CONSTRAINT "project_risks_pkey" PRIMARY KEY (id)
+);

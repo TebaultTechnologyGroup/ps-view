@@ -1,4 +1,12 @@
-import { AppShell, Button, Group, NavLink, Text, TextInput, Title } from '@mantine/core'
+import {
+  AppShell,
+  Button,
+  Group,
+  NavLink,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import {
   IconBuildingSkyscraper,
   IconBriefcase,
@@ -9,36 +17,42 @@ import {
   IconUser,
   IconUsers,
   IconUsersGroup,
-} from '@tabler/icons-react'
-import { NavLink as RouterLink, Outlet, useNavigate } from 'react-router-dom'
+} from "@tabler/icons-react";
+import { NavLink as RouterLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "@/guards/AppContext";
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', to: '/admin/dashboard', icon: IconLayoutDashboard },
-  { label: 'Portfolios', to: '/admin/portfolios', icon: IconFolders },
-  { label: 'Projects', to: '/admin/projects', icon: IconBriefcase },
-  { label: 'Customers', to: '/admin/customers', icon: IconBuildingSkyscraper },
-  { label: 'Users', to: '/admin/users', icon: IconUser },
-  { label: 'Groups', to: '/admin/groups', icon: IconUsersGroup },
-]
+  { label: "Dashboard", to: "/admin/dashboard", icon: IconLayoutDashboard },
+  { label: "Portfolios", to: "/admin/portfolios", icon: IconFolders },
+  { label: "Projects", to: "/admin/projects", icon: IconBriefcase },
+  { label: "Customers", to: "/admin/customers", icon: IconBuildingSkyscraper },
+  { label: "Users", to: "/admin/users", icon: IconUser },
+  { label: "Groups", to: "/admin/groups", icon: IconUsersGroup },
+];
 
 // TODO: replace with the authenticated user once Supabase auth is implemented
-const currentUser = { name: 'Mark Tebault' }
+const currentUser = { name: "Mark Tebault" };
 
 export default function AdminLayout() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const handleLogout = () => {
-    // TODO: sign out via Supabase auth
-    navigate('/')
-  }
+    signOut();
+    navigate("/");
+  };
 
   return (
-    <AppShell header={{ height: 60 }} navbar={{ width: 240, breakpoint: 'sm' }} padding="md">
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{ width: 240, breakpoint: "sm" }}
+      padding="md"
+    >
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
           <Group gap="xs" wrap="nowrap">
             <IconUsers size={24} />
-            <Title order={3} size="h4" style={{ whiteSpace: 'nowrap' }}>
+            <Title order={3} size="h4" style={{ whiteSpace: "nowrap" }}>
               PS Delivery Portal
             </Title>
           </Group>
@@ -57,7 +71,12 @@ export default function AdminLayout() {
                 {currentUser.name}
               </Text>
             </Group>
-            <Button variant="default" size="xs" leftSection={<IconLogout size={14} />} onClick={handleLogout}>
+            <Button
+              variant="default"
+              size="xs"
+              leftSection={<IconLogout size={14} />}
+              onClick={handleLogout}
+            >
               Logout
             </Button>
           </Group>
@@ -80,5 +99,5 @@ export default function AdminLayout() {
         <Outlet />
       </AppShell.Main>
     </AppShell>
-  )
+  );
 }

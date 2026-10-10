@@ -1,0 +1,107 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "editItem": "{{name}} bearbeiten",
+    "deleteItem": "{{name}} löschen",
+    "customer": "Abbrechen"
+  },
+  "validation": {
+    "required": "{{field}} ist erforderlich"
+  },
+  "projectTabs": {
+    "details": "Details",
+    "status": "Status",
+    "risks": "Risiken",
+    "issues": "Probleme",
+    "actions": "Maßnahmen",
+    "dependencies": "Abhängigkeiten",
+    "milestones": "Meilensteine",
+    "change-orders": "Änderungsaufträge"
+  },
+  "risk": {
+    "title": "Risiken",
+    "add": "Risiko hinzufügen",
+    "edit": "Risiko bearbeiten",
+    "bulkAdd": "Mehrfach hinzufügen",
+    "none": "Noch keine Risiken",
+    "deleteTitle": "Risiko löschen",
+    "deleteConfirm": "<b>{{title}}</b> löschen?",
+    "fields": {
+      "riskId": "Risiko-ID",
+      "title": "Titel",
+      "description": "Beschreibung",
+      "mitigation": "Maßnahmenplan",
+      "mitigationShort": "Maßnahmen",
+      "probability": "Wahrscheinlichkeit",
+      "impact": "Auswirkung",
+      "status": "Status",
+      "owner": "Verantwortlicher",
+      "dueDate": "Fälligkeitsdatum",
+      "dueShort": "Fällig"
+    },
+    "level": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch"
+    },
+    "statuses": {
+      "open": "Offen",
+      "mitigated": "Gemindert",
+      "accepted": "Akzeptiert",
+      "closed": "Geschlossen"
+    }
+  },
+  "issue": {
+    "title": "Probleme",
+    "add": "Problem hinzufügen",
+    "edit": "Problem bearbeiten",
+    "none": "Noch keine Probleme",
+    "deleteTitle": "Problem löschen",
+    "deleteConfirm": "<b>{{title}}</b> löschen?",
+    "fields": {
+      "issueId": "Problem-ID",
+      "title": "Titel",
+      "description": "Beschreibung",
+      "actionPlan": "Maßnahmenplan",
+      "resolution": "Lösung",
+      "severity": "Schweregrad",
+      "priority": "Priorität",
+      "status": "Status",
+      "owner": "Verantwortlicher",
+      "category": "Kategorie",
+      "raisedBy": "Gemeldet von",
+      "raisedDate": "Gemeldet",
+      "targetDate": "Zieldatum",
+      "targetShort": "Ziel",
+      "actualDate": "Tatsächliches Datum",
+      "budgetImpact": "Budgetauswirkung",
+      "scheduleImpact": "Terminauswirkung",
+      "scopeImpact": "Umfangsauswirkung",
+      "costImpact": "Geschätzte Kostenauswirkung",
+      "daysDelayed": "Geschätzte Verzögerung (Tage)",
+      "currency": "Währung"
+    },
+    "level": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch"
+    },
+    "statuses": {
+      "open": "Offen",
+      "mitigated": "Gemindert",
+      "accepted": "Akzeptiert",
+      "closed": "Geschlossen"
+    },
+    "category": {
+      "technical": "Technisch",
+      "resource": "Ressourcen",
+      "scope": "Umfang",
+      "schedule": "Termin",
+      "vendor": "Lieferant",
+      "other": "Sonstiges"
+    }
+  }
+}

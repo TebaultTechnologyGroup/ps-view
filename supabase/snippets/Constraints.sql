@@ -26,3 +26,11 @@ alter table projects add constraint projects_updatedby_fk foreign key (updated_b
 -- project_status_reports
 alter table project_status_reports add constraint project_status_reports_project_fk foreign key (project_id) references projects (id) on delete cascade;
 alter table project_status_reports add contraint project_status_reports_status_fk foreign key (project_status_id) references project_status_reports (id);
+
+-- project_risks
+CREATE INDEX project_risks_project_idx ON "public"."project_risks" (project_id);
+
+ALTER TABLE "public"."project_risks"
+  ADD CONSTRAINT project_risks_project_number_key UNIQUE (project_id, risk_number),
+  ADD CONSTRAINT project_risks_project_risk_id_key UNIQUE (project_id, risk_id);
+

@@ -1,23 +1,21 @@
-import { useState } from 'react'
-import { ActionIcon, Button, Group, Modal, Stack, Table, Text, TextInput, Title, Tooltip } from '@mantine/core'
+import { useCallback, useEffect, useState } from 'react'
+import { ActionIcon, Alert, Button, Group, Modal, Stack, Table, Text, TextInput, Title, Tooltip } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import { IconEdit, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react'
+import { supabase } from '@/lib/supabase-client'
 
 interface Customer {
   id: string
   name: string
 }
 
-// TODO: replace with Supabase once the backend is implemented
-const initialCustomers: Customer[] = [
-  { id: '1', name: 'Acme Incorporated' },
-  { id: '2', name: 'Globex Corporation' },
-  { id: '3', name: 'Initech' },
-]
-
 export default function Customers() {
-  const [customers, setCustomers] = useState(initialCustomers)
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<Customer | null>(null)
   const [deleting, setDeleting] = useState<Customer | null>(null)
@@ -37,11 +35,24 @@ export default function Customers() {
     },
   })
 
+  const load = useCallback(async () => {
+    setLoading(true)
+    const { data, error } = await supabase.from('customers').select('id, name')
+    setError(error?.message ?? null)
+    setCustomers(data ?? [])
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
   const openCreate = () => {
     setEditing(null)
     form.setValues({ name: '' })
     form.resetDirty()
     form.clearErrors()
+    setFormError(null)
     formHandlers.open()
   }
 
@@ -50,22 +61,32 @@ export default function Customers() {
     form.setValues({ name: customer.name })
     form.resetDirty()
     form.clearErrors()
+    setFormError(null)
     formHandlers.open()
   }
 
-  const handleSubmit = ({ name }: { name: string }) => {
+  const handleSubmit = async ({ name }: { name: string }) => {
     const trimmed = name.trim()
-    if (editing) {
-      setCustomers((prev) => prev.map((c) => (c.id === editing.id ? { ...c, name: trimmed } : c)))
-    } else {
-      setCustomers((prev) => [...prev, { id: crypto.randomUUID(), name: trimmed }])
+    setSaving(true)
+    setFormError(null)
+    const { error } = editing
+      ? await supabase.from('customers').update({ name: trimmed }).eq('id', editing.id)
+      : await supabase.from('customers').insert({ id: crypto.randomUUID(), name: trimmed })
+    setSaving(false)
+    if (error) {
+      setFormError(error.message)
+      return
     }
     formHandlers.close()
+    await load()
   }
 
-  const confirmDelete = () => {
-    if (deleting) setCustomers((prev) => prev.filter((c) => c.id !== deleting.id))
+  const confirmDelete = async () => {
+    if (!deleting) return
+    const { error } = await supabase.from('customers').delete().eq('id', deleting.id)
     setDeleting(null)
+    if (error) setError(error.message)
+    else await load()
   }
 
   const query = search.trim().toLowerCase()
@@ -81,6 +102,12 @@ export default function Customers() {
           Add customer
         </Button>
       </Group>
+
+      {error && (
+        <Alert color="red" withCloseButton onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
       <TextInput
         placeholder="Search customers"
@@ -103,7 +130,7 @@ export default function Customers() {
             <Table.Tr>
               <Table.Td colSpan={2}>
                 <Text c="dimmed" ta="center" py="md">
-                  {customers.length === 0 ? 'No customers yet' : 'No customers match your search'}
+                  {loading ? 'Loading…' : customers.length === 0 ? 'No customers yet' : 'No customers match your search'}
                 </Text>
               </Table.Td>
             </Table.Tr>
@@ -134,12 +161,13 @@ export default function Customers() {
       <Modal opened={formOpened} onClose={formHandlers.close} title={editing ? 'Edit customer' : 'Add customer'}>
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack>
+            {formError && <Alert color="red">{formError}</Alert>}
             <TextInput label="Name" data-autofocus {...form.getInputProps('name')} />
             <Group justify="flex-end">
               <Button variant="default" onClick={formHandlers.close}>
                 Cancel
               </Button>
-              <Button type="submit">{editing ? 'Save' : 'Add'}</Button>
+              <Button type="submit" loading={saving}>{editing ? 'Save' : 'Add'}</Button>
             </Group>
           </Stack>
         </form>

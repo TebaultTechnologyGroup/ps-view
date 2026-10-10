@@ -1,0 +1,107 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "editItem": "Edit {{name}}",
+    "deleteItem": "Delete {{name}}",
+    "customer": "Customer"
+  },
+  "validation": {
+    "required": "{{field}} is required"
+  },
+  "projectTabs": {
+    "details": "Details",
+    "status": "Status",
+    "risks": "Risks",
+    "issues": "Issues",
+    "actions": "Actions",
+    "dependencies": "Dependencies",
+    "milestones": "Milestones",
+    "change-orders": "Change Orders"
+  },
+  "risk": {
+    "title": "Risks",
+    "add": "Add risk",
+    "edit": "Edit risk",
+    "bulkAdd": "Bulk add",
+    "none": "No risks yet",
+    "deleteTitle": "Delete risk",
+    "deleteConfirm": "Delete <b>{{title}}</b>?",
+    "fields": {
+      "riskId": "Risk ID",
+      "title": "Title",
+      "description": "Description",
+      "mitigation": "Mitigation plan",
+      "mitigationShort": "Mitigation",
+      "probability": "Probability",
+      "impact": "Impact",
+      "status": "Status",
+      "owner": "Owner",
+      "dueDate": "Due date",
+      "dueShort": "Due"
+    },
+    "level": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "statuses": {
+      "open": "Open",
+      "mitigated": "Mitigated",
+      "accepted": "Accepted",
+      "closed": "Closed"
+    }
+  },
+  "issue": {
+    "title": "Issues",
+    "add": "Add issue",
+    "edit": "Edit issue",
+    "none": "No issues yet",
+    "deleteTitle": "Delete issue",
+    "deleteConfirm": "Delete <b>{{title}}</b>?",
+    "fields": {
+      "issueId": "Issue ID",
+      "title": "Title",
+      "description": "Description",
+      "actionPlan": "Action plan",
+      "resolution": "Resolution",
+      "severity": "Severity",
+      "priority": "Priority",
+      "status": "Status",
+      "owner": "Owner",
+      "category": "Category",
+      "raisedBy": "Raised by",
+      "raisedDate": "Raised",
+      "targetDate": "Target date",
+      "targetShort": "Target",
+      "actualDate": "Actual date",
+      "budgetImpact": "Budget impact",
+      "scheduleImpact": "Schedule impact",
+      "scopeImpact": "Scope impact",
+      "costImpact": "Estimated cost impact",
+      "daysDelayed": "Estimated days delayed",
+      "currency": "Currency"
+    },
+    "level": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "statuses": {
+      "open": "Open",
+      "mitigated": "Mitigated",
+      "accepted": "Accepted",
+      "closed": "Closed"
+    },
+    "category": {
+      "technical": "Technical",
+      "resource": "Resource",
+      "scope": "Scope",
+      "schedule": "Schedule",
+      "vendor": "Vendor",
+      "other": "Other"
+    }
+  }
+}

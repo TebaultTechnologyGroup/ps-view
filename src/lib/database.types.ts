@@ -29,7 +29,7 @@ export type Database = {
                   }
                   ComputedFields: never
                   Insert: {
-                    "id": string,"name": string
+                    "id"?: string,"name": string
                   }
                   Update: {
                     "id"?: string,"name"?: string
@@ -43,7 +43,7 @@ export type Database = {
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"deleted"?: boolean | null,"id": string,"name"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"deleted"?: boolean | null,"id"?: string,"name"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
                     "created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"deleted"?: boolean | null,"id"?: string,"name"?: string | null,"updated_at"?: string,"updated_by"?: string | null
@@ -56,6 +56,20 @@ isOneToOne: false
       referencedRelation: "customers"
       referencedColumns: ["id"]
     }
+                  ]
+                },"issue_categories": {
+                  Row: {
+                    "id": string,"locale_tag": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"locale_tag": string
+                  }
+                  Update: {
+                    "id"?: string,"locale_tag"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"portfolio_projects": {
                   Row: {
@@ -103,6 +117,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_issues": {
+                  Row: {
+                    "action_plan": string | null,"actual_date": string | null,"category_id": string | null,"created_at": string,"created_by": string | null,"currency": string | null,"deleted": boolean | null,"description": string | null,"estimated_cost_impact": number | null,"estimated_days_delayed": number | null,"has_budget_impact": boolean | null,"has_schedule_impact": boolean | null,"has_scope_impact": boolean | null,"id": string,"issue_id": string | null,"issue_number": number,"owner_id": string | null,"priority": string | null,"project_id": string,"raised_by": string | null,"raised_date": string,"resolution": string | null,"severity": string | null,"status": string | null,"target_date": string | null,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action_plan"?: string | null,"actual_date"?: string | null,"category_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string | null,"deleted"?: boolean | null,"description"?: string | null,"estimated_cost_impact"?: number | null,"estimated_days_delayed"?: number | null,"has_budget_impact"?: boolean | null,"has_schedule_impact"?: boolean | null,"has_scope_impact"?: boolean | null,"id"?: string,"issue_id"?: never,"issue_number": number,"owner_id"?: string | null,"priority"?: string | null,"project_id": string,"raised_by"?: string | null,"raised_date"?: string,"resolution"?: string | null,"severity"?: string | null,"status"?: string | null,"target_date"?: string | null,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "action_plan"?: string | null,"actual_date"?: string | null,"category_id"?: string | null,"created_at"?: string,"created_by"?: string | null,"currency"?: string | null,"deleted"?: boolean | null,"description"?: string | null,"estimated_cost_impact"?: number | null,"estimated_days_delayed"?: number | null,"has_budget_impact"?: boolean | null,"has_schedule_impact"?: boolean | null,"has_scope_impact"?: boolean | null,"id"?: string,"issue_id"?: never,"issue_number"?: number,"owner_id"?: string | null,"priority"?: string | null,"project_id"?: string,"raised_by"?: string | null,"raised_date"?: string,"resolution"?: string | null,"severity"?: string | null,"status"?: string | null,"target_date"?: string | null,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_issues_category_id_fkey"
+      columns: ["category_id"]
+isOneToOne: false
+      referencedRelation: "issue_categories"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_issues_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_issues_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_issues_raised_by_fkey"
+      columns: ["raised_by"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project_permissions": {
                   Row: {
                     "id": string,"level": string | null,"project_id": string | null,"target_id": string | null,"type": string | null
@@ -116,6 +168,32 @@ isOneToOne: false
                   }
                   Relationships: [
                     
+                  ]
+                },"project_risks": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted": boolean,"description": string | null,"due_date": string | null,"id": string,"impact": string,"mitigation": string | null,"owner_id": string | null,"probability": string,"project_id": string,"risk_id": string | null,"risk_number": number,"status": string,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted"?: boolean,"description"?: string | null,"due_date"?: string | null,"id": string,"impact"?: string,"mitigation"?: string | null,"owner_id"?: string | null,"probability"?: string,"project_id": string,"risk_id"?: never,"risk_number": number,"status"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted"?: boolean,"description"?: string | null,"due_date"?: string | null,"id"?: string,"impact"?: string,"mitigation"?: string | null,"owner_id"?: string | null,"probability"?: string,"project_id"?: string,"risk_id"?: never,"risk_number"?: number,"status"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_risks_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_risks_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"project_status_reports": {
                   Row: {
@@ -217,14 +295,14 @@ isOneToOne: false
                   ]
                 },"users": {
                   Row: {
-                    "active": boolean | null,"auth_id": string | null,"city": string | null,"country": string | null,"created_at": string,"created_by": string | null,"customer_id": string | null,"deleted": boolean | null,"display_name": string | null,"email": string | null,"full_name": string | null,"id": string,"locale": string | null,"role": string,"timezone": string | null,"updated_at": string,"updated_by": string | null
+                    "active": boolean | null,"city": string | null,"country": string | null,"created_at": string,"created_by": string | null,"customer_id": string | null,"deleted": boolean | null,"display_name": string | null,"email": string | null,"full_name": string | null,"id": string,"locale": string | null,"role": string,"timezone": string | null,"updated_at": string,"updated_by": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean | null,"auth_id"?: string | null,"city"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"deleted"?: boolean | null,"display_name"?: string | null,"email"?: string | null,"full_name"?: string | null,"id": string,"locale"?: string | null,"role"?: string,"timezone"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean | null,"city"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"deleted"?: boolean | null,"display_name"?: string | null,"email"?: string | null,"full_name"?: string | null,"id": string,"locale"?: string | null,"role"?: string,"timezone"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Update: {
-                    "active"?: boolean | null,"auth_id"?: string | null,"city"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"deleted"?: boolean | null,"display_name"?: string | null,"email"?: string | null,"full_name"?: string | null,"id"?: string,"locale"?: string | null,"role"?: string,"timezone"?: string | null,"updated_at"?: string,"updated_by"?: string | null
+                    "active"?: boolean | null,"city"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"deleted"?: boolean | null,"display_name"?: string | null,"email"?: string | null,"full_name"?: string | null,"id"?: string,"locale"?: string | null,"role"?: string,"timezone"?: string | null,"updated_at"?: string,"updated_by"?: string | null
                   }
                   Relationships: [
                     {
@@ -253,7 +331,9 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "current_user_role":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           }
           }
           Enums: {
             [_ in never]: never
