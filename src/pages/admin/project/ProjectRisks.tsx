@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import { IconEdit, IconPlus, IconTrash, IconUpload } from "@tabler/icons-react";
+import { IconPlus, IconTrash, IconUpload } from "@tabler/icons-react";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { Trans, useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -168,6 +168,7 @@ export default function ProjectRisks() {
       ? await supabase.from("project_risks").update(fields).eq("id", editing.id)
       : await supabase.from("project_risks").insert({
           id: crypto.randomUUID(),
+          risk_number: 1, ///// TODOD: Fix this.
           project_id: projectId!,
           created_by: me?.userId,
           ...fields,

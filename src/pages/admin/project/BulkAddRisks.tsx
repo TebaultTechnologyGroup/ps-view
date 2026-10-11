@@ -17,6 +17,7 @@ import { useAuth } from "@/guards/AppContext";
 type Owner = { value: string; label: string; email: string };
 
 const COLUMNS = [
+  "risk_number",
   "title",
   "description",
   "probability",
@@ -153,6 +154,7 @@ export default function BulkAddRisks({
       rows.map((r) => ({
         id: crypto.randomUUID(),
         project_id: projectId,
+        risk_number: 1, /////////// TODO: Figure out how to fix this.  I am unsure where this error is coming from.
         title: r.data!.title,
         description: toHtml(r.data!.description),
         probability: r.data!.probability,
@@ -167,6 +169,7 @@ export default function BulkAddRisks({
         updated_at: now,
       })),
     );
+
     setSaving(false);
     if (error) return setError(error.message);
     close();

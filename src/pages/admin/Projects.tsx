@@ -13,7 +13,7 @@ import {
   Title,
   Tooltip,
 } from "@mantine/core";
-import { IconEdit, IconPlus, IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconPlus, IconSearch, IconTrash } from "@tabler/icons-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase-client";
 import { useAuth } from "@/guards/AppContext";
