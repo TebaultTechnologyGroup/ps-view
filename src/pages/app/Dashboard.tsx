@@ -1,10 +1,18 @@
-import { useState, type ReactNode } from 'react'
 import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  Alert,
+  AppShell,
   Badge,
-  Button,
   Card,
   Container,
   Group,
+  Select,
   SimpleGrid,
   Stack,
   Table,
@@ -12,222 +20,198 @@ import {
   ThemeIcon,
   Title,
   Typography,
-} from '@mantine/core'
-import { IconCheck, IconCircleDashed, IconClockHour4, IconX } from '@tabler/icons-react'
-import dayjs from 'dayjs'
+} from "@mantine/core";
+import dayjs from "dayjs";
+import { supabase } from "@/lib/supabase-client";
+import AppHeader from "./AppHeader";
+import { sanitize } from "@/components/RichTextField";
 
-type Rag = 'green' | 'yellow' | 'red'
+type Rag = "green" | "yellow" | "red";
 
-const RAG_LABEL: Record<Rag, string> = { green: 'On Track', yellow: 'At Risk', red: 'Off Track' }
+const RAG_LABEL: Record<Rag, string> = {
+  green: "On Track",
+  yellow: "At Risk",
+  red: "Off Track",
+};
 
-function RagIndicator({ status, withLabel = false }: { status: Rag; withLabel?: boolean }) {
+function RagIndicator({ status }: { status: Rag }) {
   return (
-    <Group gap={6} wrap="nowrap">
-      <ThemeIcon color={status} radius="xl" size={16} aria-label={RAG_LABEL[status]}>
-        <span />
-      </ThemeIcon>
-      {withLabel && (
-        <Text size="sm" fw={600}>
-          {RAG_LABEL[status]}
-        </Text>
-      )}
-    </Group>
-  )
+    <ThemeIcon
+      color={status}
+      radius="xl"
+      size={16}
+      aria-label={RAG_LABEL[status]}
+    >
+      <span />
+    </ThemeIcon>
+  );
 }
 
-const fmt = (d: string) => dayjs(d).format('MMM D, YYYY')
+const fmt = (d: string | null) => (d ? dayjs(d).format("MMM D, YYYY") : "—");
+const today = () => dayjs().format("YYYY-MM-DD");
 
-// ---------- mock data ----------
+// ---------- types ----------
 
-const project = {
-  name: 'Acme First Start',
-  customer: 'Acme Incorporated',
+interface Project {
+  id: string;
+  name: string | null;
+  customer_id: string | null;
 }
-
-const currentStatus = {
-  rag: 'yellow' as Rag,
-  published: '2026-10-02',
-  author: 'Jordan Rivera, Project Manager',
-  commentsHtml: `
-    <p><strong>Summary:</strong> Build phase is progressing, but we are <em>slightly behind</em> due to delayed access to the Acme staging environment.</p>
-    <ul>
-      <li>Process models for Order-to-Cash are 80% complete</li>
-      <li>Connector development started for SAP integration</li>
-      <li>Staging access expected by <strong>Oct 12</strong>; a delay beyond that will push UAT</li>
-    </ul>
-    <p>Next week: complete remaining BPMN models and begin integration testing.</p>`,
+interface StatusReport {
+  comments: string | null;
+  published_at: string | null;
+  range_start: string | null;
+  range_end: string | null;
 }
-
-const milestones: { name: string; due: string; rag: Rag; comment?: string }[] = [
-  { name: 'Staging environment ready', due: '2026-10-12', rag: 'red', comment: 'Acme IT has not yet granted network access.' },
-  { name: 'Order-to-Cash models complete', due: '2026-10-16', rag: 'yellow', comment: 'Waiting on SME review of exception paths.' },
-  { name: 'SAP integration complete', due: '2026-10-30', rag: 'green' },
-  { name: 'User acceptance testing', due: '2026-11-13', rag: 'yellow', comment: 'Dependent on staging environment delivery.' },
-  { name: 'Go-live', due: '2026-12-01', rag: 'green' },
-]
-
-type ApprovalState = 'Pending approval' | 'Approved' | 'Rejected'
-
+interface Milestone {
+  id: string;
+  milestone_id: string | null;
+  title: string;
+  notes: string | null;
+  status: string;
+  planned_date: string | null;
+  forecast_date: string | null;
+}
 interface ChangeOrder {
-  id: string
-  date: string
-  number: string
-  name: string
-  impact: string
-  status: ApprovalState
-  approvedBy?: string
-  approvedOn?: string
+  id: string;
+  change_order_id: string | null;
+  title: string;
+  requested_date: string;
+  status: string;
+  estimated_cost_impact: number;
+  estimated_days_impact: number;
+  currency: string;
+  approver: string | null;
+  decision_date: string | null;
+}
+interface Risk {
+  id: string;
+  risk_id: string | null;
+  title: string;
+  probability: string;
+  impact: string;
+  due_date: string | null;
+}
+interface Action {
+  id: string;
+  action_id: string | null;
+  title: string;
+  due_date: string | null;
+  status: string;
+}
+interface Issue {
+  id: string;
+  issue_id: string | null;
+  title: string;
+  priority: string | null;
+  raised_date: string;
+}
+interface Dependency {
+  id: string;
+  dependency_id: string | null;
+  title: string;
+  related_party: string | null;
+  due_date: string | null;
+  status: string;
 }
 
-const initialChangeOrders: ChangeOrder[] = [
-  { id: '1', date: '2026-09-15', number: 'CO-001', name: 'Add Salesforce integration', impact: '+3 weeks, +$24,000', status: 'Approved', approvedBy: 'Dana Whitfield', approvedOn: '2026-09-20' },
-  { id: '2', date: '2026-09-28', number: 'CO-002', name: 'Additional process model: Returns', impact: '+1 week, +$8,000', status: 'Pending approval' },
-  { id: '3', date: '2026-10-03', number: 'CO-003', name: 'Extended hypercare period', impact: '+2 weeks, +$12,000', status: 'Pending approval' },
-  { id: '4', date: '2026-09-10', number: 'CO-004', name: 'Custom reporting dashboard', impact: '+4 weeks, +$30,000', status: 'Rejected' },
-]
-
-const STATUS_COLOR: Record<ApprovalState, string> = {
-  'Pending approval': 'yellow',
-  Approved: 'green',
-  Rejected: 'red',
+interface Data {
+  projectId: string;
+  report: StatusReport | null;
+  milestones: Milestone[];
+  changeOrders: ChangeOrder[];
+  risks: Risk[];
+  actions: Action[];
+  issues: Issue[];
+  dependencies: Dependency[];
 }
 
-const risks = [
-  { id: 'R-01', title: 'Key SME availability limited during Q4', severity: 'High', owner: 'Acme – Priya Shah', due: '2026-10-20' },
-  { id: 'R-02', title: 'SAP API rate limits may constrain throughput', severity: 'Medium', owner: 'Camunda – Lee Chen', due: '2026-10-25' },
-  { id: 'R-03', title: 'Scope creep from additional departments', severity: 'Medium', owner: 'Camunda – Jordan Rivera', due: '2026-11-01' },
-]
+// ---------- display helpers ----------
 
-const actionItems = [
-  { id: 'A-14', title: 'Provide VPN credentials for staging', owner: 'Acme – Tom Becker', due: '2026-10-10', status: 'Overdue' },
-  { id: 'A-15', title: 'Review exception-path BPMN diagrams', owner: 'Acme – Priya Shah', due: '2026-10-14', status: 'Open' },
-  { id: 'A-17', title: 'Schedule UAT participants', owner: 'Camunda – Jordan Rivera', due: '2026-10-21', status: 'Open' },
-]
+const LEVEL_RANK: Record<string, number> = { low: 1, medium: 2, high: 3 };
+const levelColor = (p: string | null) =>
+  p === "high" ? "red" : p === "medium" ? "yellow" : "gray";
+const cap = (s: string | null) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ") : "—";
 
-const issues = [
-  { id: 'I-05', title: 'Staging environment unreachable from Camunda network', priority: 'High', owner: 'Acme – Tom Becker', opened: '2026-09-29' },
-  { id: 'I-06', title: 'Test data for invoices incomplete', priority: 'Medium', owner: 'Acme – Priya Shah', opened: '2026-10-01' },
-]
+const milestoneDate = (m: Milestone) => m.forecast_date ?? m.planned_date;
 
-const dependencies = [
-  { id: 'D-02', title: 'SAP sandbox access', dependsOn: 'Acme IT', needed: '2026-10-15', status: 'At Risk' },
-  { id: 'D-03', title: 'Signed-off requirements for Returns process', dependsOn: 'Acme Operations', needed: '2026-10-22', status: 'On Track' },
-]
+const milestoneRag = (m: Milestone): Rag => {
+  const date = milestoneDate(m);
+  if (m.status === "delayed" || (date && date < today())) return "red";
+  if (m.status === "at_risk") return "yellow";
+  return "green";
+};
 
-type GateState = 'Complete' | 'In progress' | 'Not started'
+const CO_COLOR: Record<string, string> = {
+  submitted: "yellow",
+  approved: "green",
+  implemented: "teal",
+  rejected: "red",
+};
+const CO_LABEL: Record<string, string> = { submitted: "Pending approval" };
 
-const gates: { name: string; target: string; state: GateState; approvedBy?: string; approvedOn?: string }[] = [
-  { name: 'Discovery complete', target: '2026-08-14', state: 'Complete', approvedBy: 'Dana Whitfield', approvedOn: '2026-08-15' },
-  { name: 'Design complete', target: '2026-09-18', state: 'Complete', approvedBy: 'Dana Whitfield', approvedOn: '2026-09-21' },
-  { name: 'Build complete', target: '2026-11-06', state: 'In progress' },
-  { name: 'Project complete', target: '2026-12-15', state: 'Not started' },
-]
-
-const GATE_ICON: Record<GateState, { color: string; icon: ReactNode }> = {
-  Complete: { color: 'green', icon: <IconCheck size={14} /> },
-  'In progress': { color: 'blue', icon: <IconClockHour4 size={14} /> },
-  'Not started': { color: 'gray', icon: <IconCircleDashed size={14} /> },
-}
-
-const priorityColor = (p: string) => (p === 'High' ? 'red' : p === 'Medium' ? 'yellow' : 'gray')
+const coImpact = (o: ChangeOrder) => {
+  const parts = [
+    o.estimated_days_impact
+      ? `${o.estimated_days_impact > 0 ? "+" : ""}${o.estimated_days_impact} days`
+      : null,
+    o.estimated_cost_impact
+      ? `${o.estimated_cost_impact > 0 ? "+" : ""}${o.currency}${o.estimated_cost_impact.toLocaleString()}`
+      : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(", ") : "—";
+};
 
 // ---------- components ----------
 
-function Section({ title, count, children }: { title: string; count?: number; children: ReactNode }) {
+function Section({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count?: number;
+  children: ReactNode;
+}) {
   return (
     <Card withBorder radius="md" padding="lg">
       <Group justify="space-between" mb="md">
         <Title order={3} size="h4">
           {title}
         </Title>
-        {count !== undefined && <Badge variant="light" color="gray">{count}</Badge>}
+        {count !== undefined && (
+          <Badge variant="light" color="gray">
+            {count}
+          </Badge>
+        )}
       </Group>
       {children}
     </Card>
-  )
-}
-
-function ChangeOrdersTable() {
-  const [orders, setOrders] = useState(initialChangeOrders)
-
-  const decide = (id: string, status: 'Approved' | 'Rejected') =>
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === id
-          ? {
-              ...o,
-              status,
-              approvedBy: status === 'Approved' ? 'Mark Tebault' : undefined,
-              approvedOn: status === 'Approved' ? dayjs().format('YYYY-MM-DD') : undefined,
-            }
-          : o,
-      ),
-    )
-
-  return (
-    <Table.ScrollContainer minWidth={800}>
-      <Table verticalSpacing="sm" highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Date</Table.Th>
-            <Table.Th>CO #</Table.Th>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Impact to project</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>Approved by</Table.Th>
-            <Table.Th />
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {orders.map((o) => (
-            <Table.Tr key={o.id}>
-              <Table.Td>{fmt(o.date)}</Table.Td>
-              <Table.Td fw={600}>{o.number}</Table.Td>
-              <Table.Td>{o.name}</Table.Td>
-              <Table.Td>{o.impact}</Table.Td>
-              <Table.Td>
-                <Badge color={STATUS_COLOR[o.status]} variant="light">
-                  {o.status}
-                </Badge>
-              </Table.Td>
-              <Table.Td>
-                {o.status === 'Approved' && o.approvedBy ? (
-                  <Text size="sm">
-                    {o.approvedBy}
-                    <Text span c="dimmed" size="sm">
-                      {' '}· {fmt(o.approvedOn!)}
-                    </Text>
-                  </Text>
-                ) : (
-                  <Text c="dimmed" size="sm">—</Text>
-                )}
-              </Table.Td>
-              <Table.Td>
-                {o.status === 'Pending approval' && (
-                  <Group gap="xs" wrap="nowrap">
-                    <Button size="compact-sm" color="green" leftSection={<IconCheck size={14} />} onClick={() => decide(o.id, 'Approved')}>
-                      Approve
-                    </Button>
-                    <Button size="compact-sm" color="red" variant="outline" leftSection={<IconX size={14} />} onClick={() => decide(o.id, 'Rejected')}>
-                      Reject
-                    </Button>
-                  </Group>
-                )}
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-    </Table.ScrollContainer>
-  )
+  );
 }
 
 interface Column<T> {
-  header: string
-  cell: (row: T) => ReactNode
+  header: string;
+  cell: (row: T) => ReactNode;
 }
 
-function SimpleTable<T extends { id: string }>({ columns, rows }: { columns: Column<T>[]; rows: T[] }) {
+function SimpleTable<T extends { id: string }>({
+  columns,
+  rows,
+  empty,
+}: {
+  columns: Column<T>[];
+  rows: T[];
+  empty: string;
+}) {
+  if (rows.length === 0) {
+    return (
+      <Text c="dimmed" ta="center" py="sm">
+        {empty}
+      </Text>
+    );
+  }
   return (
     <Table.ScrollContainer minWidth={600}>
       <Table verticalSpacing="sm" highlightOnHover>
@@ -249,147 +233,438 @@ function SimpleTable<T extends { id: string }>({ columns, rows }: { columns: Col
         </Table.Tbody>
       </Table>
     </Table.ScrollContainer>
-  )
+  );
 }
 
+const idCell = (id: string | null) => <Text fw={600}>{id}</Text>;
+
 export default function Dashboard() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [customers, setCustomers] = useState<Record<string, string>>({});
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [data, setData] = useState<Data | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // RLS limits everything here to the projects this user has been given access to.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      supabase
+        .from("projects")
+        .select("id, name, customer_id")
+        .eq("deleted", false)
+        .order("name"),
+      supabase.from("customers").select("id, name"),
+    ]).then(([p, c]) => {
+      if (cancelled) return;
+      const err = p.error ?? c.error;
+      if (err) setError(err.message);
+      const list = p.data ?? [];
+      setProjects(list);
+      setCustomers(
+        Object.fromEntries((c.data ?? []).map((x) => [x.id, x.name])),
+      );
+      setProjectId((cur) => cur ?? list[0]?.id ?? null);
+      if (list.length === 0) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const load = useCallback(async (id: string) => {
+    const [sr, m, co, r, a, i, d] = await Promise.all([
+      supabase
+        .from("project_status_reports")
+        .select("comments, published_at, range_start, range_end")
+        .eq("project_id", id)
+        .not("published_at", "is", null)
+        .order("published_at", { ascending: false })
+        .limit(1),
+      supabase
+        .from("project_milestones")
+        .select(
+          "id, milestone_id, title, notes, status, planned_date, forecast_date",
+        )
+        .eq("project_id", id)
+        .eq("deleted", false)
+        .neq("status", "completed"),
+      supabase
+        .from("project_change_orders")
+        .select(
+          "id, change_order_id, title, requested_date, status, estimated_cost_impact, estimated_days_impact, currency, approver, decision_date",
+        )
+        .eq("project_id", id)
+        .eq("deleted", false)
+        .neq("status", "draft")
+        .order("requested_date", { ascending: false }),
+      supabase
+        .from("project_risks")
+        .select("id, risk_id, title, probability, impact, due_date")
+        .eq("project_id", id)
+        .eq("deleted", false)
+        .eq("status", "open"),
+      supabase
+        .from("project_actions")
+        .select("id, action_id, title, due_date, status")
+        .eq("project_id", id)
+        .eq("deleted", false)
+        .in("status", ["open", "in_progress"])
+        .order("due_date", { ascending: true, nullsFirst: false }),
+      supabase
+        .from("project_issues")
+        .select("id, issue_id, title, priority, raised_date")
+        .eq("project_id", id)
+        .eq("deleted", false)
+        .eq("status", "open"),
+      supabase
+        .from("project_dependencies")
+        .select("id, dependency_id, title, related_party, due_date, status")
+        .eq("project_id", id)
+        .eq("deleted", false)
+        .in("status", ["open", "at_risk"])
+        .order("due_date", { ascending: true, nullsFirst: false }),
+    ]);
+    const err =
+      sr.error ??
+      m.error ??
+      co.error ??
+      r.error ??
+      a.error ??
+      i.error ??
+      d.error;
+    setError(err ? err.message : null);
+    setData({
+      projectId: id,
+      report: sr.data?.[0] ?? null,
+      milestones: (m.data ?? []).sort((x, y) =>
+        (milestoneDate(x) ?? "9999").localeCompare(milestoneDate(y) ?? "9999"),
+      ),
+      changeOrders: co.data ?? [],
+      risks: (r.data ?? []).sort(
+        (x, y) =>
+          LEVEL_RANK[y.probability] * LEVEL_RANK[y.impact] -
+          LEVEL_RANK[x.probability] * LEVEL_RANK[x.impact],
+      ),
+      actions: a.data ?? [],
+      issues: (i.data ?? []).sort(
+        (x, y) =>
+          (LEVEL_RANK[y.priority ?? ""] ?? 0) -
+          (LEVEL_RANK[x.priority ?? ""] ?? 0),
+      ),
+      dependencies: d.data ?? [],
+    });
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!projectId) return;
+    let cancelled = false;
+    load(projectId).catch((e) => {
+      if (!cancelled) setError(String(e));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, load]);
+
+  // data from a previously selected project counts as not loaded
+  const current = data?.projectId === projectId ? data : null;
+  const project = projects.find((p) => p.id === projectId);
+  const projectOptions = useMemo(
+    () => projects.map((p) => ({ value: p.id, label: p.name ?? p.id })),
+    [projects],
+  );
+
+  if (!loading && projects.length === 0) {
+    return (
+      <AppShell header={{ height: 60 }}>
+        <AppHeader />
+        <AppShell.Main>
+          <Container size="xl" py="xl">
+            {error && <Alert color="red">{error}</Alert>}
+            <Text c="dimmed">You don't have access to any projects yet.</Text>
+          </Container>
+        </AppShell.Main>
+      </AppShell>
+    );
+  }
+
+  const pendingCOs = current?.changeOrders.filter(
+    (o) => o.status === "submitted",
+  ).length;
+
   return (
-    <Container size="xl" py="xl">
-      <Stack gap="lg">
-        <div>
-          <Text c="dimmed" size="sm" tt="uppercase" fw={600}>
-            {project.customer}
-          </Text>
-          <Title order={1}>{project.name}</Title>
-        </div>
-
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-          <Section title="Current Status">
-            <Group justify="space-between" mb="sm">
-              <RagIndicator status={currentStatus.rag} withLabel />
-              <Text size="sm" c="dimmed">
-                Published {fmt(currentStatus.published)} · {currentStatus.author}
-              </Text>
+    <AppShell header={{ height: 60 }}>
+      <AppHeader />
+      <AppShell.Main>
+        <Container size="xl" py="xl">
+          <Stack gap="lg">
+            <Group justify="space-between" align="flex-end">
+              <div>
+                <Text c="dimmed" size="sm" tt="uppercase" fw={600}>
+                  {customers[project?.customer_id ?? ""] ?? ""}
+                </Text>
+                <Title order={1}>{project?.name}</Title>
+              </div>
+              {projects.length > 1 && (
+                <Select
+                  aria-label="Project"
+                  data={projectOptions}
+                  value={projectId}
+                  onChange={(v) => v && setProjectId(v)}
+                  allowDeselect={false}
+                  w={280}
+                />
+              )}
             </Group>
-            <Typography>
-              {/* Static mock content; real data must be sanitized before rendering as HTML */}
-              <div dangerouslySetInnerHTML={{ __html: currentStatus.commentsHtml }} />
-            </Typography>
-          </Section>
 
-          <Section title="Upcoming Milestones" count={milestones.length}>
-            <Stack gap="sm">
-              {milestones.map((m) => (
-                <Group key={m.name} align="flex-start" wrap="nowrap" gap="sm">
-                  <div style={{ paddingTop: 3 }}>
-                    <RagIndicator status={m.rag} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <Group justify="space-between" wrap="nowrap">
-                      <Text fw={600}>{m.name}</Text>
-                      <Text size="sm" c="dimmed">{fmt(m.due)}</Text>
-                    </Group>
-                    {m.comment && (
-                      <Text size="sm" c="dimmed">
-                        {m.comment}
+            {error && (
+              <Alert color="red" withCloseButton onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
+
+            {!current ? (
+              <Text c="dimmed">Loading…</Text>
+            ) : (
+              <>
+                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+                  <Section title="Current Status">
+                    {current.report ? (
+                      <>
+                        <Text size="sm" c="dimmed" mb="sm">
+                          Published {fmt(current.report.published_at)}
+                          {current.report.range_start &&
+                          current.report.range_end
+                            ? ` · covers ${fmt(current.report.range_start)} – ${fmt(current.report.range_end)}`
+                            : ""}
+                        </Text>
+                        <Typography>
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: sanitize(current.report.comments ?? ""),
+                            }}
+                          />
+                        </Typography>
+                      </>
+                    ) : (
+                      <Text c="dimmed">
+                        No status report has been published yet.
                       </Text>
                     )}
-                  </div>
-                </Group>
-              ))}
-            </Stack>
-          </Section>
-        </SimpleGrid>
+                  </Section>
 
-        <Section title="Open Change Orders" count={initialChangeOrders.filter((o) => o.status === 'Pending approval').length}>
-          <ChangeOrdersTable />
-        </Section>
+                  <Section
+                    title="Upcoming Milestones"
+                    count={current.milestones.length}
+                  >
+                    {current.milestones.length === 0 ? (
+                      <Text c="dimmed" ta="center" py="sm">
+                        No upcoming milestones
+                      </Text>
+                    ) : (
+                      <Stack gap="sm">
+                        {current.milestones.map((m) => (
+                          <Group
+                            key={m.id}
+                            align="flex-start"
+                            wrap="nowrap"
+                            gap="sm"
+                          >
+                            <div style={{ paddingTop: 3 }}>
+                              <RagIndicator status={milestoneRag(m)} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <Group justify="space-between" wrap="nowrap">
+                                <Text fw={600}>{m.title}</Text>
+                                <Text size="sm" c="dimmed">
+                                  {fmt(milestoneDate(m))}
+                                </Text>
+                              </Group>
+                              {m.forecast_date &&
+                                m.planned_date &&
+                                m.forecast_date !== m.planned_date && (
+                                  <Text size="xs" c="dimmed">
+                                    Originally planned {fmt(m.planned_date)}
+                                  </Text>
+                                )}
+                              {m.notes && (
+                                <Typography fz="sm" c="dimmed">
+                                  <div
+                                    dangerouslySetInnerHTML={{
+                                      __html: sanitize(m.notes),
+                                    }}
+                                  />
+                                </Typography>
+                              )}
+                            </div>
+                          </Group>
+                        ))}
+                      </Stack>
+                    )}
+                  </Section>
+                </SimpleGrid>
 
-        <Section title="Open Risks" count={risks.length}>
-          <SimpleTable
-            rows={risks}
-            columns={[
-              { header: 'ID', cell: (r) => <Text fw={600}>{r.id}</Text> },
-              { header: 'Risk', cell: (r) => r.title },
-              { header: 'Severity', cell: (r) => <Badge variant="light" color={priorityColor(r.severity)}>{r.severity}</Badge> },
-              { header: 'Owner', cell: (r) => r.owner },
-              { header: 'Mitigation due', cell: (r) => fmt(r.due) },
-            ]}
-          />
-        </Section>
+                <Section title="Change Orders" count={pendingCOs}>
+                  <SimpleTable
+                    rows={current.changeOrders}
+                    empty="No change orders"
+                    columns={[
+                      { header: "Date", cell: (o) => fmt(o.requested_date) },
+                      {
+                        header: "CO #",
+                        cell: (o) => idCell(o.change_order_id),
+                      },
+                      { header: "Name", cell: (o) => o.title },
+                      { header: "Impact to project", cell: coImpact },
+                      {
+                        header: "Status",
+                        cell: (o) => (
+                          <Badge
+                            color={CO_COLOR[o.status] ?? "gray"}
+                            variant="light"
+                          >
+                            {CO_LABEL[o.status] ?? cap(o.status)}
+                          </Badge>
+                        ),
+                      },
+                      {
+                        header: "Decision",
+                        cell: (o) =>
+                          o.approver || o.decision_date ? (
+                            <Text size="sm">
+                              {o.approver}
+                              <Text span c="dimmed" size="sm">
+                                {o.approver && o.decision_date ? " · " : ""}
+                                {o.decision_date ? fmt(o.decision_date) : ""}
+                              </Text>
+                            </Text>
+                          ) : (
+                            <Text c="dimmed" size="sm">
+                              —
+                            </Text>
+                          ),
+                      },
+                    ]}
+                  />
+                </Section>
 
-        <Section title="Open Action Items" count={actionItems.length}>
-          <SimpleTable
-            rows={actionItems}
-            columns={[
-              { header: 'ID', cell: (r) => <Text fw={600}>{r.id}</Text> },
-              { header: 'Action', cell: (r) => r.title },
-              { header: 'Owner', cell: (r) => r.owner },
-              { header: 'Due', cell: (r) => fmt(r.due) },
-              { header: 'Status', cell: (r) => <Badge variant="light" color={r.status === 'Overdue' ? 'red' : 'blue'}>{r.status}</Badge> },
-            ]}
-          />
-        </Section>
+                <Section title="Open Risks" count={current.risks.length}>
+                  <SimpleTable
+                    rows={current.risks}
+                    empty="No open risks"
+                    columns={[
+                      { header: "ID", cell: (r) => idCell(r.risk_id) },
+                      { header: "Risk", cell: (r) => r.title },
+                      {
+                        header: "Probability",
+                        cell: (r) => (
+                          <Badge
+                            variant="light"
+                            color={levelColor(r.probability)}
+                          >
+                            {cap(r.probability)}
+                          </Badge>
+                        ),
+                      },
+                      {
+                        header: "Impact",
+                        cell: (r) => (
+                          <Badge variant="light" color={levelColor(r.impact)}>
+                            {cap(r.impact)}
+                          </Badge>
+                        ),
+                      },
+                      { header: "Due", cell: (r) => fmt(r.due_date) },
+                    ]}
+                  />
+                </Section>
 
-        <Section title="Open Issues" count={issues.length}>
-          <SimpleTable
-            rows={issues}
-            columns={[
-              { header: 'ID', cell: (r) => <Text fw={600}>{r.id}</Text> },
-              { header: 'Issue', cell: (r) => r.title },
-              { header: 'Priority', cell: (r) => <Badge variant="light" color={priorityColor(r.priority)}>{r.priority}</Badge> },
-              { header: 'Owner', cell: (r) => r.owner },
-              { header: 'Opened', cell: (r) => fmt(r.opened) },
-            ]}
-          />
-        </Section>
+                <Section
+                  title="Open Action Items"
+                  count={current.actions.length}
+                >
+                  <SimpleTable
+                    rows={current.actions}
+                    empty="No open actions"
+                    columns={[
+                      { header: "ID", cell: (r) => idCell(r.action_id) },
+                      { header: "Action", cell: (r) => r.title },
+                      { header: "Due", cell: (r) => fmt(r.due_date) },
+                      {
+                        header: "Status",
+                        cell: (r) => {
+                          const overdue = !!r.due_date && r.due_date < today();
+                          return (
+                            <Badge
+                              variant="light"
+                              color={overdue ? "red" : "blue"}
+                            >
+                              {overdue ? "Overdue" : cap(r.status)}
+                            </Badge>
+                          );
+                        },
+                      },
+                    ]}
+                  />
+                </Section>
 
-        <Section title="Open Dependencies" count={dependencies.length}>
-          <SimpleTable
-            rows={dependencies}
-            columns={[
-              { header: 'ID', cell: (r) => <Text fw={600}>{r.id}</Text> },
-              { header: 'Dependency', cell: (r) => r.title },
-              { header: 'Depends on', cell: (r) => r.dependsOn },
-              { header: 'Needed by', cell: (r) => fmt(r.needed) },
-              { header: 'Status', cell: (r) => <Badge variant="light" color={r.status === 'At Risk' ? 'yellow' : 'green'}>{r.status}</Badge> },
-            ]}
-          />
-        </Section>
+                <Section title="Open Issues" count={current.issues.length}>
+                  <SimpleTable
+                    rows={current.issues}
+                    empty="No open issues"
+                    columns={[
+                      { header: "ID", cell: (r) => idCell(r.issue_id) },
+                      { header: "Issue", cell: (r) => r.title },
+                      {
+                        header: "Priority",
+                        cell: (r) => (
+                          <Badge variant="light" color={levelColor(r.priority)}>
+                            {cap(r.priority)}
+                          </Badge>
+                        ),
+                      },
+                      { header: "Opened", cell: (r) => fmt(r.raised_date) },
+                    ]}
+                  />
+                </Section>
 
-        <Section title="Gates & Approvals" count={gates.length}>
-          <SimpleTable
-            rows={gates.map((g) => ({ ...g, id: g.name }))}
-            columns={[
-              {
-                header: 'Gate',
-                cell: (g) => (
-                  <Group gap="xs" wrap="nowrap">
-                    <ThemeIcon size={24} radius="xl" color={GATE_ICON[g.state].color}>
-                      {GATE_ICON[g.state].icon}
-                    </ThemeIcon>
-                    <Text fw={600}>{g.name}</Text>
-                  </Group>
-                ),
-              },
-              { header: 'Target date', cell: (g) => fmt(g.target) },
-              { header: 'Status', cell: (g) => <Badge variant="light" color={GATE_ICON[g.state].color}>{g.state}</Badge> },
-              {
-                header: 'Approved by',
-                cell: (g) =>
-                  g.approvedBy ? (
-                    <Text size="sm">
-                      {g.approvedBy}
-                      <Text span c="dimmed" size="sm"> · {fmt(g.approvedOn!)}</Text>
-                    </Text>
-                  ) : (
-                    <Text c="dimmed" size="sm">—</Text>
-                  ),
-              },
-            ]}
-          />
-        </Section>
-      </Stack>
-    </Container>
-  )
+                <Section
+                  title="Open Dependencies"
+                  count={current.dependencies.length}
+                >
+                  <SimpleTable
+                    rows={current.dependencies}
+                    empty="No open dependencies"
+                    columns={[
+                      { header: "ID", cell: (r) => idCell(r.dependency_id) },
+                      { header: "Dependency", cell: (r) => r.title },
+                      {
+                        header: "Depends on",
+                        cell: (r) => r.related_party ?? "—",
+                      },
+                      { header: "Needed by", cell: (r) => fmt(r.due_date) },
+                      {
+                        header: "Status",
+                        cell: (r) => (
+                          <Badge
+                            variant="light"
+                            color={r.status === "at_risk" ? "yellow" : "blue"}
+                          >
+                            {cap(r.status)}
+                          </Badge>
+                        ),
+                      },
+                    ]}
+                  />
+                </Section>
+              </>
+            )}
+          </Stack>
+        </Container>
+      </AppShell.Main>
+    </AppShell>
+  );
 }

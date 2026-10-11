@@ -103,5 +103,191 @@
       "vendor": "Lieferant",
       "other": "Sonstiges"
     }
+  },
+  "action": {
+    "title": "Maßnahmen",
+    "add": "Maßnahme hinzufügen",
+    "edit": "Maßnahme bearbeiten",
+    "none": "Noch keine Maßnahmen",
+    "deleteTitle": "Maßnahme löschen",
+    "deleteConfirm": "<b>{{title}}</b> löschen?",
+    "fields": {
+      "actionId": "Maßnahmen-ID",
+      "title": "Titel",
+      "description": "Beschreibung",
+      "resolution": "Ergebnis",
+      "priority": "Priorität",
+      "status": "Status",
+      "owner": "Verantwortlich",
+      "raisedBy": "Erfasst von",
+      "raisedDate": "Erfasst",
+      "dueDate": "Fälligkeitsdatum",
+      "dueShort": "Fällig",
+      "completedDate": "Abschlussdatum"
+    },
+    "level": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch"
+    },
+    "statuses": {
+      "open": "Offen",
+      "in_progress": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "cancelled": "Abgebrochen"
+    }
+  },
+  "dependency": {
+    "title": "Abhängigkeiten",
+    "add": "Abhängigkeit hinzufügen",
+    "edit": "Abhängigkeit bearbeiten",
+    "none": "Noch keine Abhängigkeiten",
+    "deleteTitle": "Abhängigkeit löschen",
+    "deleteConfirm": "<b>{{title}}</b> löschen?",
+    "fields": {
+      "dependencyId": "Abhängigkeits-ID",
+      "title": "Titel",
+      "description": "Beschreibung",
+      "impact": "Auswirkung bei Nichterfüllung",
+      "resolution": "Ergebnis",
+      "type": "Typ",
+      "direction": "Richtung",
+      "relatedParty": "Beteiligte Partei",
+      "priority": "Priorität",
+      "status": "Status",
+      "owner": "Verantwortlich",
+      "raisedBy": "Erfasst von",
+      "raisedDate": "Erfasst",
+      "dueDate": "Fälligkeitsdatum",
+      "dueShort": "Fällig",
+      "resolvedDate": "Lösungsdatum"
+    },
+    "level": {
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch"
+    },
+    "types": {
+      "internal": "Intern",
+      "external": "Extern"
+    },
+    "directions": {
+      "inbound": "Eingehend (wir hängen von ihnen ab)",
+      "outbound": "Ausgehend (sie hängen von uns ab)"
+    },
+    "statuses": {
+      "open": "Offen",
+      "at_risk": "Gefährdet",
+      "resolved": "Gelöst",
+      "cancelled": "Abgebrochen"
+    }
+  },
+  "milestone": {
+    "title": "Meilensteine",
+    "add": "Meilenstein hinzufügen",
+    "edit": "Meilenstein bearbeiten",
+    "none": "Noch keine Meilensteine",
+    "deleteTitle": "Meilenstein löschen",
+    "deleteConfirm": "<b>{{title}}</b> löschen?",
+    "fields": {
+      "milestoneId": "Meilenstein-ID",
+      "title": "Titel",
+      "description": "Beschreibung",
+      "notes": "Notizen",
+      "status": "Status",
+      "owner": "Verantwortlich",
+      "plannedDate": "Geplantes Datum",
+      "plannedShort": "Geplant",
+      "forecastDate": "Prognosedatum",
+      "forecastShort": "Prognose",
+      "actualDate": "Tatsächliches Datum"
+    },
+    "statuses": {
+      "not_started": "Nicht begonnen",
+      "on_track": "Im Plan",
+      "at_risk": "Gefährdet",
+      "delayed": "Verzögert",
+      "completed": "Abgeschlossen"
+    }
+  },
+  "changeOrder": {
+    "title": "Änderungsaufträge",
+    "add": "Änderungsauftrag hinzufügen",
+    "edit": "Änderungsauftrag bearbeiten",
+    "none": "Noch keine Änderungsaufträge",
+    "deleteTitle": "Änderungsauftrag löschen",
+    "deleteConfirm": "<b>{{title}}</b> löschen?",
+    "fields": {
+      "changeOrderId": "ÄA-ID",
+      "title": "Titel",
+      "description": "Beschreibung",
+      "justification": "Begründung",
+      "status": "Status",
+      "owner": "Verantwortlich",
+      "requestedBy": "Angefordert von",
+      "requestedDate": "Angefordert",
+      "approver": "Genehmiger",
+      "decisionDate": "Entscheidungsdatum",
+      "costImpact": "Geschätzte Kostenauswirkung",
+      "costShort": "Kosten",
+      "daysImpact": "Geschätzte Terminauswirkung (Tage)",
+      "daysShort": "Tage",
+      "currency": "Währung"
+    },
+    "statuses": {
+      "draft": "Entwurf",
+      "submitted": "Eingereicht",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt",
+      "implemented": "Umgesetzt"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "includeInactive": "Inaktive Projekte einbeziehen",
+    "none": "Keine Projekte vorhanden",
+    "loading": "Lädt…",
+    "never": "Nie",
+    "healthMix": "Portfolio-Status",
+    "healthRuleLink": "Wie wird der Status berechnet?",
+    "healthRule": "Rot: ein Meilenstein ist verspätet oder verzögert, oder es gibt ein offenes Problem mit hoher Schwere oder ein offenes Risiko mit hoher Wahrscheinlichkeit und hoher Auswirkung. Gelb: eine überfällige Maßnahme oder ein gefährdeter Meilenstein bzw. eine gefährdete Abhängigkeit. Grün: nichts davon.",
+    "health": {
+      "red": "Rot",
+      "amber": "Gelb",
+      "green": "Grün"
+    },
+    "kpi": {
+      "active": "Aktive Projekte",
+      "projects": "Projekte",
+      "endingSoon": "{{count}} enden innerhalb von 30 Tagen",
+      "atRisk": "Gefährdete Projekte (rot)",
+      "atRiskHint": "{{count}} weitere benötigen Aufmerksamkeit (gelb)",
+      "criticalRisks": "Kritische Risiken",
+      "criticalRisksHint": "Offen, hohe Wahrscheinlichkeit und hohe Auswirkung",
+      "highIssues": "Probleme mit hoher Schwere",
+      "highIssuesHint": "Offene Probleme",
+      "lateMilestones": "Verspätete Meilensteine",
+      "lateMilestonesHint": "Prognosedatum überschritten oder verzögert",
+      "overdueActions": "Überfällige Maßnahmen",
+      "atRiskDependencies": "Gefährdete Abhängigkeiten",
+      "pendingChangeOrders": "Änderungsaufträge in Entscheidung",
+      "pendingValue": "Wert: {{value}}",
+      "approvedValue": "Wert genehmigter Änderungsaufträge",
+      "approvedValueHint": "Genehmigt und umgesetzt",
+      "staleReports": "Veraltete Statusberichte",
+      "staleReportsHint": "Kein veröffentlichter Bericht in {{days}} Tagen"
+    },
+    "cols": {
+      "project": "Projekt",
+      "customer": "Kunde",
+      "health": "Status",
+      "criticalRisks": "Kritische Risiken",
+      "highIssues": "Hohe Probleme",
+      "overdueActions": "Überfällige Maßnahmen",
+      "lateMilestones": "Verspätete Meilensteine",
+      "nextMilestone": "Nächster Meilenstein",
+      "pendingCOs": "Offene ÄA",
+      "lastReport": "Letzter Bericht"
+    }
   }
 }

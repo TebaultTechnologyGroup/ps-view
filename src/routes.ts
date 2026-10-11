@@ -1,4 +1,3 @@
-import { createElement } from "react";
 import { createBrowserRouter, redirect } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import PasswordRecovery from "./pages/PasswordRecovery";
@@ -12,7 +11,10 @@ import ProjectDetails from "./pages/admin/project/ProjectDetails";
 import ProjectStatus from "./pages/admin/project/ProjectStatus";
 import ProjectRisks from "./pages/admin/project/ProjectRisks";
 import ProjectIssues from "./pages/admin/project/ProjectIssues";
-import ComingSoon from "./pages/admin/project/ComingSoon";
+import ProjectActions from "./pages/admin/project/ProjectActions";
+import ProjectDependencies from "./pages/admin/project/ProjectDependencies";
+import ProjectMilestones from "./pages/admin/project/ProjectMilestones";
+import ProjectChangeOrders from "./pages/admin/project/ProjectChangeOrders";
 import Customers from "./pages/admin/Customers";
 import Users from "./pages/admin/Users";
 import Groups from "./pages/admin/Groups";
@@ -75,15 +77,10 @@ export const router = createBrowserRouter([
                   { path: "status", Component: ProjectStatus },
                   { path: "risks", Component: ProjectRisks },
                   { path: "issues", Component: ProjectIssues },
-                  ...[
-                    ["actions", "Actions"],
-                    ["dependencies", "Dependencies"],
-                    ["milestones", "Milestones"],
-                    ["change-orders", "Change orders"],
-                  ].map(([path, name]) => ({
-                    path,
-                    element: createElement(ComingSoon, { name }),
-                  })),
+                  { path: "actions", Component: ProjectActions },
+                  { path: "dependencies", Component: ProjectDependencies },
+                  { path: "milestones", Component: ProjectMilestones },
+                  { path: "change-orders", Component: ProjectChangeOrders },
                 ],
               },
               { path: "customers", Component: Customers },

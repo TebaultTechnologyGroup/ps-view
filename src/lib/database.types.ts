@@ -117,6 +117,102 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"project_actions": {
+                  Row: {
+                    "action_id": string | null,"action_number": number,"completed_date": string | null,"created_at": string,"created_by": string | null,"deleted": boolean,"description": string | null,"due_date": string | null,"id": string,"owner_id": string | null,"priority": string,"project_id": string,"raised_by": string | null,"raised_date": string,"resolution": string | null,"status": string,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "action_id"?: never,"action_number": number,"completed_date"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted"?: boolean,"description"?: string | null,"due_date"?: string | null,"id": string,"owner_id"?: string | null,"priority"?: string,"project_id": string,"raised_by"?: string | null,"raised_date"?: string,"resolution"?: string | null,"status"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "action_id"?: never,"action_number"?: number,"completed_date"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted"?: boolean,"description"?: string | null,"due_date"?: string | null,"id"?: string,"owner_id"?: string | null,"priority"?: string,"project_id"?: string,"raised_by"?: string | null,"raised_date"?: string,"resolution"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_actions_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_actions_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_actions_raised_by_fkey"
+      columns: ["raised_by"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project_dependencies": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"deleted": boolean,"dependency_id": string | null,"dependency_number": number,"dependency_type": string,"description": string | null,"direction": string,"due_date": string | null,"id": string,"impact": string | null,"owner_id": string | null,"priority": string,"project_id": string,"raised_by": string | null,"raised_date": string,"related_party": string | null,"resolution": string | null,"resolved_date": string | null,"status": string,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted"?: boolean,"dependency_id"?: never,"dependency_number": number,"dependency_type"?: string,"description"?: string | null,"direction"?: string,"due_date"?: string | null,"id": string,"impact"?: string | null,"owner_id"?: string | null,"priority"?: string,"project_id": string,"raised_by"?: string | null,"raised_date"?: string,"related_party"?: string | null,"resolution"?: string | null,"resolved_date"?: string | null,"status"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"deleted"?: boolean,"dependency_id"?: never,"dependency_number"?: number,"dependency_type"?: string,"description"?: string | null,"direction"?: string,"due_date"?: string | null,"id"?: string,"impact"?: string | null,"owner_id"?: string | null,"priority"?: string,"project_id"?: string,"raised_by"?: string | null,"raised_date"?: string,"related_party"?: string | null,"resolution"?: string | null,"resolved_date"?: string | null,"status"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_dependencies_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_dependencies_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_dependencies_raised_by_fkey"
+      columns: ["raised_by"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project_change_orders": {
+                  Row: {
+                    "approver": string | null,"change_order_id": string | null,"change_order_number": number,"created_at": string,"created_by": string | null,"currency": string,"decision_date": string | null,"deleted": boolean,"description": string | null,"estimated_cost_impact": number,"estimated_days_impact": number,"id": string,"justification": string | null,"owner_id": string | null,"project_id": string,"requested_by": string | null,"requested_date": string,"status": string,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "approver"?: string | null,"change_order_id"?: never,"change_order_number": number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"decision_date"?: string | null,"deleted"?: boolean,"description"?: string | null,"estimated_cost_impact"?: number,"estimated_days_impact"?: number,"id": string,"justification"?: string | null,"owner_id"?: string | null,"project_id": string,"requested_by"?: string | null,"requested_date"?: string,"status"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "approver"?: string | null,"change_order_id"?: never,"change_order_number"?: number,"created_at"?: string,"created_by"?: string | null,"currency"?: string,"decision_date"?: string | null,"deleted"?: boolean,"description"?: string | null,"estimated_cost_impact"?: number,"estimated_days_impact"?: number,"id"?: string,"justification"?: string | null,"owner_id"?: string | null,"project_id"?: string,"requested_by"?: string | null,"requested_date"?: string,"status"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_change_orders_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_change_orders_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_change_orders_requested_by_fkey"
+      columns: ["requested_by"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"project_issues": {
                   Row: {
                     "action_plan": string | null,"actual_date": string | null,"category_id": string | null,"created_at": string,"created_by": string | null,"currency": string | null,"deleted": boolean | null,"description": string | null,"estimated_cost_impact": number | null,"estimated_days_delayed": number | null,"has_budget_impact": boolean | null,"has_schedule_impact": boolean | null,"has_scope_impact": boolean | null,"id": string,"issue_id": string | null,"issue_number": number,"owner_id": string | null,"priority": string | null,"project_id": string,"raised_by": string | null,"raised_date": string,"resolution": string | null,"severity": string | null,"status": string | null,"target_date": string | null,"title": string,"updated_at": string,"updated_by": string | null
@@ -152,6 +248,32 @@ isOneToOne: false
       columns: ["raised_by"]
 isOneToOne: false
       referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"project_milestones": {
+                  Row: {
+                    "actual_date": string | null,"created_at": string,"created_by": string | null,"deleted": boolean,"description": string | null,"forecast_date": string | null,"id": string,"milestone_id": string | null,"milestone_number": number,"notes": string | null,"owner_id": string | null,"planned_date": string | null,"project_id": string,"status": string,"title": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actual_date"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted"?: boolean,"description"?: string | null,"forecast_date"?: string | null,"id": string,"milestone_id"?: never,"milestone_number": number,"notes"?: string | null,"owner_id"?: string | null,"planned_date"?: string | null,"project_id": string,"status"?: string,"title": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "actual_date"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted"?: boolean,"description"?: string | null,"forecast_date"?: string | null,"id"?: string,"milestone_id"?: never,"milestone_number"?: number,"notes"?: string | null,"owner_id"?: string | null,"planned_date"?: string | null,"project_id"?: string,"status"?: string,"title"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "project_milestones_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "project_milestones_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
       referencedColumns: ["id"]
     }
                   ]

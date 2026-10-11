@@ -103,5 +103,191 @@
       "vendor": "Vendor",
       "other": "Other"
     }
+  },
+  "action": {
+    "title": "Actions",
+    "add": "Add action",
+    "edit": "Edit action",
+    "none": "No actions yet",
+    "deleteTitle": "Delete action",
+    "deleteConfirm": "Delete <b>{{title}}</b>?",
+    "fields": {
+      "actionId": "Action ID",
+      "title": "Title",
+      "description": "Description",
+      "resolution": "Resolution",
+      "priority": "Priority",
+      "status": "Status",
+      "owner": "Owner",
+      "raisedBy": "Raised by",
+      "raisedDate": "Raised",
+      "dueDate": "Due date",
+      "dueShort": "Due",
+      "completedDate": "Completed date"
+    },
+    "level": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "dependency": {
+    "title": "Dependencies",
+    "add": "Add dependency",
+    "edit": "Edit dependency",
+    "none": "No dependencies yet",
+    "deleteTitle": "Delete dependency",
+    "deleteConfirm": "Delete <b>{{title}}</b>?",
+    "fields": {
+      "dependencyId": "Dependency ID",
+      "title": "Title",
+      "description": "Description",
+      "impact": "Impact if not met",
+      "resolution": "Resolution",
+      "type": "Type",
+      "direction": "Direction",
+      "relatedParty": "Related party",
+      "priority": "Priority",
+      "status": "Status",
+      "owner": "Owner",
+      "raisedBy": "Raised by",
+      "raisedDate": "Raised",
+      "dueDate": "Due date",
+      "dueShort": "Due",
+      "resolvedDate": "Resolved date"
+    },
+    "level": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "types": {
+      "internal": "Internal",
+      "external": "External"
+    },
+    "directions": {
+      "inbound": "Inbound (we depend on them)",
+      "outbound": "Outbound (they depend on us)"
+    },
+    "statuses": {
+      "open": "Open",
+      "at_risk": "At risk",
+      "resolved": "Resolved",
+      "cancelled": "Cancelled"
+    }
+  },
+  "milestone": {
+    "title": "Milestones",
+    "add": "Add milestone",
+    "edit": "Edit milestone",
+    "none": "No milestones yet",
+    "deleteTitle": "Delete milestone",
+    "deleteConfirm": "Delete <b>{{title}}</b>?",
+    "fields": {
+      "milestoneId": "Milestone ID",
+      "title": "Title",
+      "description": "Description",
+      "notes": "Notes",
+      "status": "Status",
+      "owner": "Owner",
+      "plannedDate": "Planned date",
+      "plannedShort": "Planned",
+      "forecastDate": "Forecast date",
+      "forecastShort": "Forecast",
+      "actualDate": "Actual date"
+    },
+    "statuses": {
+      "not_started": "Not started",
+      "on_track": "On track",
+      "at_risk": "At risk",
+      "delayed": "Delayed",
+      "completed": "Completed"
+    }
+  },
+  "changeOrder": {
+    "title": "Change orders",
+    "add": "Add change order",
+    "edit": "Edit change order",
+    "none": "No change orders yet",
+    "deleteTitle": "Delete change order",
+    "deleteConfirm": "Delete <b>{{title}}</b>?",
+    "fields": {
+      "changeOrderId": "CO ID",
+      "title": "Title",
+      "description": "Description",
+      "justification": "Justification",
+      "status": "Status",
+      "owner": "Owner",
+      "requestedBy": "Requested by",
+      "requestedDate": "Requested",
+      "approver": "Approver",
+      "decisionDate": "Decision date",
+      "costImpact": "Estimated cost impact",
+      "costShort": "Cost",
+      "daysImpact": "Estimated schedule impact (days)",
+      "daysShort": "Days",
+      "currency": "Currency"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "implemented": "Implemented"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "includeInactive": "Include inactive projects",
+    "none": "No projects to show",
+    "loading": "Loading…",
+    "never": "Never",
+    "healthMix": "Portfolio health",
+    "healthRuleLink": "How is health calculated?",
+    "healthRule": "Red: a milestone is late or delayed, or there is an open high-severity issue or an open risk rated high probability and high impact. Amber: an overdue action, or an at-risk milestone or dependency. Green: none of the above.",
+    "health": {
+      "red": "Red",
+      "amber": "Amber",
+      "green": "Green"
+    },
+    "kpi": {
+      "active": "Active projects",
+      "projects": "Projects",
+      "endingSoon": "{{count}} ending within 30 days",
+      "atRisk": "Projects at risk (red)",
+      "atRiskHint": "{{count}} more need attention (amber)",
+      "criticalRisks": "Critical risks",
+      "criticalRisksHint": "Open, high probability and high impact",
+      "highIssues": "High-severity issues",
+      "highIssuesHint": "Open issues",
+      "lateMilestones": "Late milestones",
+      "lateMilestonesHint": "Past forecast date or delayed",
+      "overdueActions": "Overdue actions",
+      "atRiskDependencies": "Dependencies at risk",
+      "pendingChangeOrders": "Change orders awaiting decision",
+      "pendingValue": "Value: {{value}}",
+      "approvedValue": "Approved change order value",
+      "approvedValueHint": "Approved and implemented",
+      "staleReports": "Stale status reports",
+      "staleReportsHint": "No published report in {{days}} days"
+    },
+    "cols": {
+      "project": "Project",
+      "customer": "Customer",
+      "health": "Health",
+      "criticalRisks": "Critical risks",
+      "highIssues": "High issues",
+      "overdueActions": "Overdue actions",
+      "lateMilestones": "Late milestones",
+      "nextMilestone": "Next milestone",
+      "pendingCOs": "Pending COs",
+      "lastReport": "Last report"
+    }
   }
 }
