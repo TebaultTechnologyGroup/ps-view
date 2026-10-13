@@ -25,3 +25,9 @@ dist-ssr
 
 # environment file
 .env
+.vercel
+.env*
+
+
+# ignore backend files
+backend/*
