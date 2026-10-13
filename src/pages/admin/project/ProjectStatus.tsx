@@ -6,27 +6,42 @@ import {
   Button,
   Group,
   Modal,
+  Select,
   Stack,
   Table,
   Text,
-  Textarea,
   TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase-client";
 import { useAuth } from "@/guards/AppContext";
 import type { Database } from "@/lib/database.types";
+import RichTextField, { RichTextPreview } from "@/components/RichTextField";
 
 type Report = Database["public"]["Tables"]["project_status_reports"]["Row"];
 
-// project_status_id is omitted: there is no status lookup table yet.
+const INDICATOR_COLOR: Record<string, string> = {
+  onTrack: "green",
+  atRisk: "yellow",
+  blocked: "red",
+  notStarted: "gray",
+  onHold: "orange",
+  canceled: "dark",
+  complete: "teal",
+};
+
 export default function ProjectStatus() {
+  const { t } = useTranslation();
   const { id: projectId } = useParams();
   const { user: me } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
+  const [indicators, setIndicators] = useState<
+    { id: string; locale_tag: string }[]
+  >([]);
   const [editing, setEditing] = useState<Report | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -36,39 +51,68 @@ export default function ProjectStatus() {
     initialValues: {
       range_start: "",
       range_end: "",
+      project_status_id: "",
       comments: "",
       published: false,
     },
     validate: {
-      range_start: (v) => (v ? null : "Start is required"),
+      range_start: (v) =>
+        v
+          ? null
+          : t("validation.required", {
+              field: t("projectStatus.fields.periodStart"),
+            }),
       range_end: (v, all) =>
         !v
-          ? "End is required"
+          ? t("validation.required", {
+              field: t("projectStatus.fields.periodEnd"),
+            })
           : v < all.range_start
-            ? "End must be on or after start"
+            ? t("projectStatus.validation.endBeforeStart")
             : null,
+      project_status_id: (v) =>
+        v
+          ? null
+          : t("validation.required", {
+              field: t("projectStatus.fields.indicator"),
+            }),
     },
   });
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("project_status_reports")
-      .select("*")
-      .eq("project_id", projectId!)
-      .order("range_start", { ascending: false });
-    setError(error ? error.message : null);
-    setReports(data ?? []);
+    const [r, i] = await Promise.all([
+      supabase
+        .from("project_status_reports")
+        .select("*")
+        .eq("project_id", projectId!)
+        .order("range_start", { ascending: false }),
+      supabase.from("project_status").select("id, locale_tag"),
+    ]);
+    const err = r.error ?? i.error;
+    setError(err ? err.message : null);
+    setReports(r.data ?? []);
+    setIndicators(i.data ?? []);
   }, [projectId]);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  const indicatorTag = (id: string | null) =>
+    indicators.find((x) => x.id === id)?.locale_tag;
+
+  // labels are i18n keys stored in the table
+  const indicatorOptions = indicators.map((x) => ({
+    value: x.id,
+    label: t(`projectStatus.indicator.${x.locale_tag}`),
+  }));
+
   const open = (r: Report | null) => {
     setEditing(r);
     form.setValues({
       range_start: r?.range_start ?? "",
       range_end: r?.range_end ?? "",
+      project_status_id: r?.project_status_id ?? "",
       comments: r?.comments ?? "",
       published: !!r?.published_at,
     });
@@ -83,6 +127,7 @@ export default function ProjectStatus() {
     const fields = {
       range_start: v.range_start,
       range_end: v.range_end,
+      project_status_id: v.project_status_id,
       comments: v.comments.trim() || null,
       published_at: v.published ? (editing?.published_at ?? now) : null,
       updated_by: me?.userId,
@@ -108,18 +153,19 @@ export default function ProjectStatus() {
   return (
     <Stack>
       <Group justify="space-between">
-        <Text fw={500}>Weekly status reports</Text>
+        <Text fw={500}>{t("projectStatus.title")}</Text>
         <Button leftSection={<IconPlus size={16} />} onClick={() => open(null)}>
-          Add report
+          {t("projectStatus.add")}
         </Button>
       </Group>
       {error && <Alert color="red">{error}</Alert>}
       <Table withTableBorder highlightOnHover verticalSpacing="sm">
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Period</Table.Th>
-            <Table.Th>Comments</Table.Th>
-            <Table.Th>State</Table.Th>
+            <Table.Th>{t("projectStatus.fields.period")}</Table.Th>
+            <Table.Th>{t("projectStatus.fields.indicator")}</Table.Th>
+            <Table.Th>{t("projectStatus.fields.comments")}</Table.Th>
+            <Table.Th>{t("projectStatus.fields.state")}</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -127,7 +173,7 @@ export default function ProjectStatus() {
             <Table.Tr>
               <Table.Td colSpan={4}>
                 <Text c="dimmed" ta="center" py="md">
-                  No status reports yet
+                  {t("projectStatus.none")}
                 </Text>
               </Table.Td>
             </Table.Tr>
@@ -144,13 +190,34 @@ export default function ProjectStatus() {
                     {r.range_start} – {r.range_end}
                   </Anchor>
                 </Table.Td>
-                <Table.Td>{r.comments}</Table.Td>
+                <Table.Td>
+                  {indicatorTag(r.project_status_id) && (
+                    <Badge
+                      variant="light"
+                      color={
+                        INDICATOR_COLOR[indicatorTag(r.project_status_id)!] ??
+                        "gray"
+                      }
+                    >
+                      {t(
+                        `projectStatus.indicator.${indicatorTag(r.project_status_id)}`,
+                      )}
+                    </Badge>
+                  )}
+                </Table.Td>
+                <Table.Td>
+                  <RichTextPreview html={r.comments} />
+                </Table.Td>
                 <Table.Td>
                   <Badge
                     variant="light"
                     color={r.published_at ? "green" : "gray"}
                   >
-                    {r.published_at ? "Published" : "Draft"}
+                    {t(
+                      r.published_at
+                        ? "projectStatus.state.published"
+                        : "projectStatus.state.draft",
+                    )}
                   </Badge>
                 </Table.Td>
               </Table.Tr>
@@ -162,7 +229,7 @@ export default function ProjectStatus() {
       <Modal
         opened={opened}
         onClose={handlers.close}
-        title={editing ? "Edit report" : "Add report"}
+        title={t(editing ? "projectStatus.edit" : "projectStatus.add")}
         size="lg"
       >
         <form onSubmit={form.onSubmit(submit)}>
@@ -170,20 +237,26 @@ export default function ProjectStatus() {
             <Group grow align="flex-start">
               <TextInput
                 type="date"
-                label="Period start"
+                label={t("projectStatus.fields.periodStart")}
                 {...form.getInputProps("range_start")}
               />
               <TextInput
                 type="date"
-                label="Period end"
+                label={t("projectStatus.fields.periodEnd")}
                 {...form.getInputProps("range_end")}
               />
             </Group>
-            <Textarea
-              label="Comments"
-              autosize
-              minRows={4}
-              {...form.getInputProps("comments")}
+            <Select
+              label={t("projectStatus.fields.indicator")}
+              data={indicatorOptions}
+              allowDeselect={false}
+              {...form.getInputProps("project_status_id")}
+            />
+            <RichTextField
+              label={t("projectStatus.fields.comments")}
+              minHeight={160}
+              value={form.values.comments}
+              onChange={(html) => form.setFieldValue("comments", html)}
             />
             <Group justify="space-between">
               <label>
@@ -191,14 +264,14 @@ export default function ProjectStatus() {
                   type="checkbox"
                   {...form.getInputProps("published", { type: "checkbox" })}
                 />{" "}
-                Published
+                {t("projectStatus.state.published")}
               </label>
               <Group>
                 <Button variant="default" onClick={handlers.close}>
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button type="submit" loading={saving}>
-                  Save
+                  {t("common.save")}
                 </Button>
               </Group>
             </Group>

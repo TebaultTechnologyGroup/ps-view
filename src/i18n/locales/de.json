@@ -289,5 +289,35 @@
       "pendingCOs": "Offene ÄA",
       "lastReport": "Letzter Bericht"
     }
+  },
+  "projectStatus": {
+    "title": "Wöchentliche Statusberichte",
+    "add": "Bericht hinzufügen",
+    "edit": "Bericht bearbeiten",
+    "none": "Noch keine Statusberichte",
+    "fields": {
+      "period": "Zeitraum",
+      "periodStart": "Zeitraum von",
+      "periodEnd": "Zeitraum bis",
+      "comments": "Kommentare",
+      "indicator": "Status",
+      "state": "Zustand"
+    },
+    "validation": {
+      "endBeforeStart": "Das Ende darf nicht vor dem Start liegen"
+    },
+    "state": {
+      "published": "Veröffentlicht",
+      "draft": "Entwurf"
+    },
+    "indicator": {
+      "onTrack": "Im Plan",
+      "atRisk": "Gefährdet",
+      "blocked": "Blockiert",
+      "notStarted": "Nicht gestartet",
+      "onHold": "Pausiert",
+      "canceled": "Abgebrochen",
+      "complete": "Abgeschlossen"
+    }
   }
 }

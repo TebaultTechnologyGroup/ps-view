@@ -289,5 +289,35 @@
       "pendingCOs": "Pending COs",
       "lastReport": "Last report"
     }
+  },
+  "projectStatus": {
+    "title": "Weekly status reports",
+    "add": "Add report",
+    "edit": "Edit report",
+    "none": "No status reports yet",
+    "fields": {
+      "period": "Period",
+      "periodStart": "Period start",
+      "periodEnd": "Period end",
+      "comments": "Comments",
+      "indicator": "Status",
+      "state": "State"
+    },
+    "validation": {
+      "endBeforeStart": "End must be on or after start"
+    },
+    "state": {
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "indicator": {
+      "onTrack": "On Track",
+      "atRisk": "At Risk",
+      "blocked": "Blocked",
+      "notStarted": "Not Started",
+      "onHold": "On Hold",
+      "canceled": "Canceled",
+      "complete": "Complete"
+    }
   }
 }

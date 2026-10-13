@@ -29,7 +29,7 @@ SET row_security = off;
 INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encrypted_password", "email_confirmed_at", "invited_at", "confirmation_token", "confirmation_sent_at", "recovery_token", "recovery_sent_at", "email_change_token_new", "email_change", "email_change_sent_at", "last_sign_in_at", "raw_app_meta_data", "raw_user_meta_data", "is_super_admin", "created_at", "updated_at", "phone", "phone_confirmed_at", "phone_change", "phone_change_token", "phone_change_sent_at", "email_change_token_current", "email_change_confirm_status", "banned_until", "reauthentication_token", "reauthentication_sent_at", "is_sso_user", "deleted_at", "is_anonymous") VALUES
 	('00000000-0000-0000-0000-000000000000', 'debb7e2b-7a65-4546-8905-05def11b38f8', 'authenticated', 'authenticated', 'test-user2@acme.com', '$2a$10$J6QAY0B/ZfxUUZyIBT.nyOlE6qQcgDnnpaxe3JBmSShVTVcqX1B..', '2026-10-09 19:21:52.558613+00', NULL, '', NULL, '', NULL, '', '', NULL, NULL, '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-10-09 19:21:52.556287+00', '2026-10-09 19:21:52.558951+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
 	('00000000-0000-0000-0000-000000000000', 'f80a8b2c-5a73-4ff2-80e0-981ad92fef2f', 'authenticated', 'authenticated', 'test-user1@acme.com', '$2a$10$z7v1QP/B3zppTR.GZpG9A.usYC8U/PnloG3VTjiy5hWz9JblELnma', '2026-10-09 18:40:59.600818+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-10-10 22:21:31.07147+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-10-09 18:40:59.598501+00', '2026-10-11 01:01:27.652769+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false),
-	('00000000-0000-0000-0000-000000000000', '25dfb822-2d9e-451f-9979-90babd79892c', 'authenticated', 'authenticated', 'mark.tebault@camunda.com', '$2a$10$eCNwHPJBfxgjeNFBIEN6nOO0MH0KZgBbDPj2TMzKuMZnOpJW.8hqe', '2026-10-09 15:04:40.365918+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-10-11 01:06:42.373927+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-10-09 15:04:40.363111+00', '2026-10-11 01:06:42.375325+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
+	('00000000-0000-0000-0000-000000000000', '25dfb822-2d9e-451f-9979-90babd79892c', 'authenticated', 'authenticated', 'test-admin1@acme.com', '$2a$06$HB.rMkRHL2dZV0t0Mhg8JOH/dHNdgP9TxTADPGXAUeXfZXnwkCDxC', '2026-10-09 15:04:40.365918+00', NULL, '', NULL, '', NULL, '', '', NULL, '2026-10-11 01:06:42.373927+00', '{"provider": "email", "providers": ["email"]}', '{"email_verified": true}', NULL, '2026-10-09 15:04:40.363111+00', '2026-10-11 01:06:42.375325+00', NULL, NULL, '', '', NULL, '', 0, NULL, '', NULL, false, NULL, false);
 
 
 --
@@ -37,7 +37,7 @@ INSERT INTO "auth"."users" ("instance_id", "id", "aud", "role", "email", "encryp
 --
 
 INSERT INTO "auth"."identities" ("provider_id", "user_id", "identity_data", "provider", "last_sign_in_at", "created_at", "updated_at", "id") VALUES
-	('25dfb822-2d9e-451f-9979-90babd79892c', '25dfb822-2d9e-451f-9979-90babd79892c', '{"sub": "25dfb822-2d9e-451f-9979-90babd79892c", "email": "mark.tebault@camunda.com", "email_verified": false, "phone_verified": false}', 'email', '2026-10-09 15:04:40.364378+00', '2026-10-09 15:04:40.364395+00', '2026-10-09 15:04:40.364395+00', '1e145179-2200-4ccf-9f92-c4607dd9be7b'),
+	('25dfb822-2d9e-451f-9979-90babd79892c', '25dfb822-2d9e-451f-9979-90babd79892c', '{"sub": "25dfb822-2d9e-451f-9979-90babd79892c", "email": "test-admin1@acme.com", "email_verified": false, "phone_verified": false}', 'email', '2026-10-09 15:04:40.364378+00', '2026-10-09 15:04:40.364395+00', '2026-10-09 15:04:40.364395+00', '1e145179-2200-4ccf-9f92-c4607dd9be7b'),
 	('f80a8b2c-5a73-4ff2-80e0-981ad92fef2f', 'f80a8b2c-5a73-4ff2-80e0-981ad92fef2f', '{"sub": "f80a8b2c-5a73-4ff2-80e0-981ad92fef2f", "email": "test-user1@acme.com", "email_verified": false, "phone_verified": false}', 'email', '2026-10-09 18:40:59.59955+00', '2026-10-09 18:40:59.599564+00', '2026-10-09 18:40:59.599564+00', '8e151b57-8e5f-4ad0-a59b-abb414956d72'),
 	('debb7e2b-7a65-4546-8905-05def11b38f8', 'debb7e2b-7a65-4546-8905-05def11b38f8', '{"sub": "debb7e2b-7a65-4546-8905-05def11b38f8", "email": "test-user2@acme.com", "email_verified": false, "phone_verified": false}', 'email', '2026-10-09 19:21:52.557429+00', '2026-10-09 19:21:52.557445+00', '2026-10-09 19:21:52.557445+00', 'ec4e2106-5fbf-484c-b9c1-21d38fc07bf1');
 
@@ -64,13 +64,28 @@ INSERT INTO "public"."issue_categories" ("id", "locale_tag") VALUES
 
 
 --
+-- Data for Name: project_status; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+INSERT INTO "public"."project_status" ("id", "locale_tag") VALUES
+	('3e4cb7b3-3c87-4d00-b27c-e41a3e480fa1', 'onTrack'),
+	('23b9e43c-03d8-4ca0-adb7-5c58f537cde3', 'atRisk'),
+	('9f28d8f4-5d84-409f-9553-322428365e1d', 'blocked'),
+	('ad7355b1-3c85-4d03-b492-32d7e12710f4', 'notStarted'),
+	('667332e6-bc4d-470b-b87f-e7d14a6a80e7', 'onHold'),
+	('659ebb62-5669-4af4-b22b-723b6b159dc9', 'canceled'),
+	('5b0f7a52-6a0e-4c1c-9d51-3f6f0b1d2a77', 'complete');
+
+
+
+--
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 INSERT INTO "public"."users" ("id", "full_name", "display_name", "email", "locale", "timezone", "country", "city", "customer_id", "active", "deleted", "created_at", "updated_at", "created_by", "updated_by", "role") VALUES
 	('f80a8b2c-5a73-4ff2-80e0-981ad92fef2f', 'Temp User1', 'User1', 'test-user1@acme.com', NULL, NULL, 'United States', 'Acworth', '37038338-710b-4cf2-89d5-7f08c6e53b7b', true, false, '2026-10-09 18:40:59.598381+00', '2026-10-09 19:06:33.777+00', '25dfb822-2d9e-451f-9979-90babd79892c', '25dfb822-2d9e-451f-9979-90babd79892c', 'CUSTOMER'),
 	('debb7e2b-7a65-4546-8905-05def11b38f8', 'Test User2', 'User2', 'test-user2@acme.com', NULL, NULL, NULL, NULL, '37038338-710b-4cf2-89d5-7f08c6e53b7b', true, false, '2026-10-09 19:21:52.556169+00', '2026-10-09 19:21:52.556169+00', '25dfb822-2d9e-451f-9979-90babd79892c', '25dfb822-2d9e-451f-9979-90babd79892c', 'CUSTOMER'),
-	('25dfb822-2d9e-451f-9979-90babd79892c', 'Mark Tebault', 'Mark', 'mark.tebault@camunda.com', 'en-US', 'America/New_York', 'United States', 'Acworth', NULL, true, false, '2026-10-09 15:04:40.362972+00', '2026-10-10 02:12:12.375+00', NULL, '25dfb822-2d9e-451f-9979-90babd79892c', 'CAMUNDA');
+	('25dfb822-2d9e-451f-9979-90babd79892c', 'Test Admin1', 'Admin1', 'test-admin1@acme.com', 'en-US', 'America/New_York', 'United States', 'Acworth', NULL, true, false, '2026-10-09 15:04:40.362972+00', '2026-10-10 02:12:12.375+00', NULL, '25dfb822-2d9e-451f-9979-90babd79892c', 'CAMUNDA');
 
 
 INSERT INTO "public"."project_types" ("id", "name", "description", "active") VALUES
