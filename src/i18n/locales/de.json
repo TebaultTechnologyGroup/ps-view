@@ -19,7 +19,8 @@
     "actions": "Maßnahmen",
     "dependencies": "Abhängigkeiten",
     "milestones": "Meilensteine",
-    "change-orders": "Änderungsaufträge"
+    "change-orders": "Änderungsaufträge",
+    "customer-view": "Kundenansicht"
   },
   "risk": {
     "title": "Risiken",
@@ -247,10 +248,11 @@
     "includeInactive": "Inaktive Projekte einbeziehen",
     "none": "Keine Projekte vorhanden",
     "loading": "Lädt…",
+    "noStatusText": "Keine Statuskommentare",
     "never": "Nie",
     "healthMix": "Portfolio-Status",
     "healthRuleLink": "Wie wird der Status berechnet?",
-    "healthRule": "Rot: ein Meilenstein ist verspätet oder verzögert, oder es gibt ein offenes Problem mit hoher Schwere oder ein offenes Risiko mit hoher Wahrscheinlichkeit und hoher Auswirkung. Gelb: eine überfällige Maßnahme oder ein gefährdeter Meilenstein bzw. eine gefährdete Abhängigkeit. Grün: nichts davon.",
+    "healthRule": "Basierend auf dem jeweils aktuellsten Statusbericht des Projekts. Rot: Blockiert. Gelb: Gefährdet. Grün: Im Plan oder Abgeschlossen. Projekte ohne Bericht oder mit Status Nicht gestartet, Pausiert oder Abgebrochen werden nicht gezählt.",
     "health": {
       "red": "Rot",
       "amber": "Gelb",
@@ -280,7 +282,7 @@
     "cols": {
       "project": "Projekt",
       "customer": "Kunde",
-      "health": "Status",
+      "status": "Status",
       "criticalRisks": "Kritische Risiken",
       "highIssues": "Hohe Probleme",
       "overdueActions": "Überfällige Maßnahmen",
@@ -318,6 +320,21 @@
       "onHold": "Pausiert",
       "canceled": "Abgebrochen",
       "complete": "Abgeschlossen"
+    }
+  },
+  "reports": {
+    "title": "Berichte",
+    "projectReview": {
+      "title": "Projektreview",
+      "description": "Projekte nach Projektmanager gruppiert mit aktuellem Status für das Projektreview-Meeting des Teams.",
+      "attentionOnly": "Nur Gefährdet / Blockiert",
+      "unassigned": "Nicht zugewiesen",
+      "projectCount_one": "{{count}} Projekt",
+      "projectCount_other": "{{count}} Projekte",
+      "needAttention_one": "{{count}} braucht Aufmerksamkeit",
+      "needAttention_other": "{{count}} brauchen Aufmerksamkeit",
+      "asOf": "Stand",
+      "noStatus": "Kein Status gemeldet"
     }
   }
 }

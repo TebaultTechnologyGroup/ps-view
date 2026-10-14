@@ -19,7 +19,8 @@
     "actions": "Actions",
     "dependencies": "Dependencies",
     "milestones": "Milestones",
-    "change-orders": "Change Orders"
+    "change-orders": "Change Orders",
+    "customer-view": "Customer view"
   },
   "risk": {
     "title": "Risks",
@@ -247,10 +248,11 @@
     "includeInactive": "Include inactive projects",
     "none": "No projects to show",
     "loading": "Loading…",
+    "noStatusText": "No status comments",
     "never": "Never",
     "healthMix": "Portfolio health",
     "healthRuleLink": "How is health calculated?",
-    "healthRule": "Red: a milestone is late or delayed, or there is an open high-severity issue or an open risk rated high probability and high impact. Amber: an overdue action, or an at-risk milestone or dependency. Green: none of the above.",
+    "healthRule": "Based on each project's most recent status report. Red: Blocked. Amber: At Risk. Green: On Track or Complete. Projects with no report, or that are Not Started, On Hold or Canceled, are not counted.",
     "health": {
       "red": "Red",
       "amber": "Amber",
@@ -280,7 +282,7 @@
     "cols": {
       "project": "Project",
       "customer": "Customer",
-      "health": "Health",
+      "status": "Status",
       "criticalRisks": "Critical risks",
       "highIssues": "High issues",
       "overdueActions": "Overdue actions",
@@ -318,6 +320,21 @@
       "onHold": "On Hold",
       "canceled": "Canceled",
       "complete": "Complete"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "projectReview": {
+      "title": "Project review",
+      "description": "Projects grouped by project manager with their current status, for the team project review meeting.",
+      "attentionOnly": "Only At Risk / Blocked",
+      "unassigned": "Unassigned",
+      "projectCount_one": "{{count}} project",
+      "projectCount_other": "{{count}} projects",
+      "needAttention_one": "{{count}} needs attention",
+      "needAttention_other": "{{count}} need attention",
+      "asOf": "As of",
+      "noStatus": "No status reported"
     }
   }
 }

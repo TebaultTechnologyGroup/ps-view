@@ -7,6 +7,7 @@ import {
   Group,
   Modal,
   Stack,
+  Switch,
   Table,
   Text,
   TextInput,
@@ -29,6 +30,7 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [onlyMine, setOnlyMine] = useState(false);
   const [deleting, setDeleting] = useState<ProjectRow | null>(null);
 
   const load = async () => {
@@ -65,6 +67,7 @@ export default function Projects() {
 
   const query = search.trim().toLowerCase();
   const visible = projects
+    .filter((p) => !onlyMine || p.owner_id === me?.userId)
     .filter((p) =>
       [p.name, customers[p.customer_id ?? ""]].some((v) =>
         v?.toLowerCase().includes(query),
@@ -90,14 +93,22 @@ export default function Projects() {
         </Alert>
       )}
 
-      <TextInput
-        placeholder="Search projects"
-        aria-label="Search projects"
-        leftSection={<IconSearch size={16} />}
-        value={search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
-        maw={400}
-      />
+      <Group>
+        <TextInput
+          placeholder="Search projects"
+          aria-label="Search projects"
+          leftSection={<IconSearch size={16} />}
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+          w={400}
+          maw="100%"
+        />
+        <Switch
+          label="My projects"
+          checked={onlyMine}
+          onChange={(e) => setOnlyMine(e.currentTarget.checked)}
+        />
+      </Group>
 
       <Table verticalSpacing="sm" highlightOnHover withTableBorder>
         <Table.Thead>
@@ -118,7 +129,7 @@ export default function Projects() {
                     ? "Loading…"
                     : projects.length === 0
                       ? "No projects yet"
-                      : "No projects match your search"}
+                      : "No projects match your filters"}
                 </Text>
               </Table.Td>
             </Table.Tr>

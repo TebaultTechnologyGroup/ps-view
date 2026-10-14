@@ -17,6 +17,7 @@ export const PROJECT_TABS = [
   { value: "dependencies" },
   { value: "milestones" },
   { value: "change-orders" },
+  { value: "customer-view" },
 ];
 
 export default function ProjectLayout() {

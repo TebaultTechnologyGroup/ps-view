@@ -339,12 +339,18 @@ const issueImpact = (i: Issue) => {
   return parts.length ? parts.join(", ") : "—";
 };
 
-export default function Dashboard() {
+// With `projectId` the page is embedded (e.g. in the admin project view): it is
+// pinned to that project and renders without the customer app shell.
+export default function Dashboard({
+  projectId: fixedId,
+}: {
+  projectId?: string;
+}) {
   const { t } = useTranslation();
   const [indicators, setIndicators] = useState<Record<string, string>>({});
   const [projects, setProjects] = useState<Project[]>([]);
   const [customers, setCustomers] = useState<Record<string, string>>({});
-  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(fixedId ?? null);
   const [data, setData] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -352,10 +358,15 @@ export default function Dashboard() {
   // RLS limits everything here to the projects this user has been given access to.
   useEffect(() => {
     let cancelled = false;
+    setProjectId(fixedId ?? null);
     Promise.all([
-      supabase
-        .from("projects")
-        .select("id, name, customer_id")
+      (fixedId
+        ? supabase
+            .from("projects")
+            .select("id, name, customer_id")
+            .eq("id", fixedId)
+        : supabase.from("projects").select("id, name, customer_id")
+      )
         .eq("deleted", false)
         .order("name"),
       supabase.from("customers").select("id, name"),
@@ -378,7 +389,7 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fixedId]);
 
   const load = useCallback(async (id: string) => {
     const [sr, m, co, r, a, i, d] = await Promise.all([
@@ -494,17 +505,30 @@ export default function Dashboard() {
     [projects],
   );
 
-  if (!loading && projects.length === 0) {
-    return (
+  const shell = (content: ReactNode) =>
+    fixedId ? (
+      content
+    ) : (
       <AppShell header={{ height: 60 }}>
         <AppHeader />
         <AppShell.Main>
           <Container size="xl" py="xl">
-            {error && <Alert color="red">{error}</Alert>}
-            <Text c="dimmed">You don't have access to any projects yet.</Text>
+            {content}
           </Container>
         </AppShell.Main>
       </AppShell>
+    );
+
+  if (!loading && projects.length === 0) {
+    return shell(
+      <>
+        {error && <Alert color="red">{error}</Alert>}
+        <Text c="dimmed">
+          {fixedId
+            ? "Project not found."
+            : "You don't have access to any projects yet."}
+        </Text>
+      </>,
     );
   }
 
@@ -514,361 +538,334 @@ export default function Dashboard() {
     (o) => o.status === "submitted",
   ).length;
 
-  return (
-    <AppShell header={{ height: 60 }}>
-      <AppHeader />
-      <AppShell.Main>
-        <Container size="xl" py="xl">
-          <Stack gap="lg">
-            <Group justify="space-between" align="flex-end">
-              <div>
-                <Text c="dimmed" size="sm" tt="uppercase" fw={600}>
-                  {customers[project?.customer_id ?? ""] ?? ""}
-                </Text>
-                <Title order={1}>{project?.name}</Title>
-              </div>
-              {projects.length > 1 && (
-                <Select
-                  aria-label="Project"
-                  data={projectOptions}
-                  value={projectId}
-                  onChange={(v) => v && setProjectId(v)}
-                  allowDeselect={false}
-                  w={280}
-                />
+  return shell(
+    <Stack gap="lg">
+      <Group justify="space-between" align="flex-end">
+        <div>
+          <Text c="dimmed" size="sm" tt="uppercase" fw={600}>
+            {customers[project?.customer_id ?? ""] ?? ""}
+          </Text>
+          <Title order={1}>{project?.name}</Title>
+        </div>
+        {!fixedId && projects.length > 1 && (
+          <Select
+            aria-label="Project"
+            data={projectOptions}
+            value={projectId}
+            onChange={(v) => v && setProjectId(v)}
+            allowDeselect={false}
+            w={280}
+          />
+        )}
+      </Group>
+
+      {error && (
+        <Alert color="red" withCloseButton onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
+      {!current ? (
+        <Text c="dimmed">Loading…</Text>
+      ) : (
+        <>
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+            <Section
+              title="Current Status"
+              badge={
+                indicatorTag && (
+                  <Badge
+                    variant="light"
+                    color={INDICATOR_COLOR[indicatorTag] ?? "gray"}
+                  >
+                    {t(`projectStatus.indicator.${indicatorTag}`)}
+                  </Badge>
+                )
+              }
+            >
+              {current.report ? (
+                <>
+                  <Text size="sm" c="dimmed" mb="sm">
+                    Published {fmt(current.report.published_at)}
+                    {current.report.range_start && current.report.range_end
+                      ? ` · covers ${fmt(current.report.range_start)} – ${fmt(current.report.range_end)}`
+                      : ""}
+                  </Text>
+                  <Typography>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: sanitize(current.report.comments ?? ""),
+                      }}
+                    />
+                  </Typography>
+                </>
+              ) : (
+                <Text c="dimmed">No status report has been published yet.</Text>
               )}
-            </Group>
+            </Section>
 
-            {error && (
-              <Alert color="red" withCloseButton onClose={() => setError(null)}>
-                {error}
-              </Alert>
-            )}
+            <Section
+              title="Upcoming Milestones"
+              count={current.milestones.length}
+            >
+              {current.milestones.length === 0 ? (
+                <Text c="dimmed" ta="center" py="sm">
+                  No upcoming milestones
+                </Text>
+              ) : (
+                <Stack gap="sm">
+                  {current.milestones.map((m) => (
+                    <Group key={m.id} align="flex-start" wrap="nowrap" gap="sm">
+                      <div style={{ paddingTop: 3 }}>
+                        <RagIndicator status={milestoneRag(m)} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Group justify="space-between" wrap="nowrap">
+                          <Text fw={600}>{m.title}</Text>
+                          <Text size="sm" c="dimmed">
+                            {fmt(milestoneDate(m))}
+                          </Text>
+                        </Group>
+                        {m.forecast_date &&
+                          m.planned_date &&
+                          m.forecast_date !== m.planned_date && (
+                            <Text size="xs" c="dimmed">
+                              Originally planned {fmt(m.planned_date)}
+                            </Text>
+                          )}
+                        {m.description && (
+                          <Typography fz="sm">
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: sanitize(m.description),
+                              }}
+                            />
+                          </Typography>
+                        )}
+                        {m.notes && (
+                          <Typography fz="sm" c="dimmed">
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: sanitize(m.notes),
+                              }}
+                            />
+                          </Typography>
+                        )}
+                      </div>
+                    </Group>
+                  ))}
+                </Stack>
+              )}
+            </Section>
+          </SimpleGrid>
 
-            {!current ? (
-              <Text c="dimmed">Loading…</Text>
-            ) : (
-              <>
-                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-                  <Section
-                    title="Current Status"
-                    badge={
-                      indicatorTag && (
-                        <Badge
-                          variant="light"
-                          color={INDICATOR_COLOR[indicatorTag] ?? "gray"}
-                        >
-                          {t(`projectStatus.indicator.${indicatorTag}`)}
-                        </Badge>
-                      )
-                    }
-                  >
-                    {current.report ? (
-                      <>
-                        <Text size="sm" c="dimmed" mb="sm">
-                          Published {fmt(current.report.published_at)}
-                          {current.report.range_start &&
-                          current.report.range_end
-                            ? ` · covers ${fmt(current.report.range_start)} – ${fmt(current.report.range_end)}`
-                            : ""}
+          <Section title="Change Orders" count={pendingCOs}>
+            <SimpleTable
+              rows={current.changeOrders}
+              empty="No change orders"
+              detail={(o) =>
+                richDetails([
+                  ["Description", o.description],
+                  ["Justification", o.justification],
+                ])
+              }
+              columns={[
+                { header: "Date", cell: (o) => fmt(o.requested_date) },
+                {
+                  header: "CO #",
+                  cell: (o) => idCell(o.change_order_id),
+                },
+                { header: "Name", cell: (o) => o.title },
+                { header: "Impact to project", cell: coImpact },
+                {
+                  header: "Status",
+                  cell: (o) => (
+                    <Badge color={CO_COLOR[o.status] ?? "gray"} variant="light">
+                      {CO_LABEL[o.status] ?? cap(o.status)}
+                    </Badge>
+                  ),
+                },
+                {
+                  header: "Decision",
+                  cell: (o) =>
+                    o.approver || o.decision_date ? (
+                      <Text size="sm">
+                        {o.approver}
+                        <Text span c="dimmed" size="sm">
+                          {o.approver && o.decision_date ? " · " : ""}
+                          {o.decision_date ? fmt(o.decision_date) : ""}
                         </Text>
-                        <Typography>
-                          <div
-                            dangerouslySetInnerHTML={{
-                              __html: sanitize(current.report.comments ?? ""),
-                            }}
-                          />
-                        </Typography>
-                      </>
-                    ) : (
-                      <Text c="dimmed">
-                        No status report has been published yet.
-                      </Text>
-                    )}
-                  </Section>
-
-                  <Section
-                    title="Upcoming Milestones"
-                    count={current.milestones.length}
-                  >
-                    {current.milestones.length === 0 ? (
-                      <Text c="dimmed" ta="center" py="sm">
-                        No upcoming milestones
                       </Text>
                     ) : (
-                      <Stack gap="sm">
-                        {current.milestones.map((m) => (
-                          <Group
-                            key={m.id}
-                            align="flex-start"
-                            wrap="nowrap"
-                            gap="sm"
-                          >
-                            <div style={{ paddingTop: 3 }}>
-                              <RagIndicator status={milestoneRag(m)} />
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <Group justify="space-between" wrap="nowrap">
-                                <Text fw={600}>{m.title}</Text>
-                                <Text size="sm" c="dimmed">
-                                  {fmt(milestoneDate(m))}
-                                </Text>
-                              </Group>
-                              {m.forecast_date &&
-                                m.planned_date &&
-                                m.forecast_date !== m.planned_date && (
-                                  <Text size="xs" c="dimmed">
-                                    Originally planned {fmt(m.planned_date)}
-                                  </Text>
-                                )}
-                              {m.description && (
-                                <Typography fz="sm">
-                                  <div
-                                    dangerouslySetInnerHTML={{
-                                      __html: sanitize(m.description),
-                                    }}
-                                  />
-                                </Typography>
-                              )}
-                              {m.notes && (
-                                <Typography fz="sm" c="dimmed">
-                                  <div
-                                    dangerouslySetInnerHTML={{
-                                      __html: sanitize(m.notes),
-                                    }}
-                                  />
-                                </Typography>
-                              )}
-                            </div>
-                          </Group>
-                        ))}
-                      </Stack>
-                    )}
-                  </Section>
-                </SimpleGrid>
+                      <Text c="dimmed" size="sm">
+                        —
+                      </Text>
+                    ),
+                },
+              ]}
+            />
+          </Section>
 
-                <Section title="Change Orders" count={pendingCOs}>
-                  <SimpleTable
-                    rows={current.changeOrders}
-                    empty="No change orders"
-                    detail={(o) =>
-                      richDetails([
-                        ["Description", o.description],
-                        ["Justification", o.justification],
-                      ])
-                    }
-                    columns={[
-                      { header: "Date", cell: (o) => fmt(o.requested_date) },
-                      {
-                        header: "CO #",
-                        cell: (o) => idCell(o.change_order_id),
-                      },
-                      { header: "Name", cell: (o) => o.title },
-                      { header: "Impact to project", cell: coImpact },
-                      {
-                        header: "Status",
-                        cell: (o) => (
-                          <Badge
-                            color={CO_COLOR[o.status] ?? "gray"}
-                            variant="light"
-                          >
-                            {CO_LABEL[o.status] ?? cap(o.status)}
-                          </Badge>
-                        ),
-                      },
-                      {
-                        header: "Decision",
-                        cell: (o) =>
-                          o.approver || o.decision_date ? (
-                            <Text size="sm">
-                              {o.approver}
-                              <Text span c="dimmed" size="sm">
-                                {o.approver && o.decision_date ? " · " : ""}
-                                {o.decision_date ? fmt(o.decision_date) : ""}
-                              </Text>
-                            </Text>
-                          ) : (
-                            <Text c="dimmed" size="sm">
-                              —
-                            </Text>
-                          ),
-                      },
-                    ]}
-                  />
-                </Section>
+          <Section title="Open Risks" count={current.risks.length}>
+            <SimpleTable
+              rows={current.risks}
+              empty="No open risks"
+              detail={(r) =>
+                richDetails([
+                  ["Description", r.description],
+                  ["Mitigation", r.mitigation],
+                ])
+              }
+              columns={[
+                { header: "ID", cell: (r) => idCell(r.risk_id) },
+                { header: "Risk", cell: (r) => bCell(r.title) },
+                {
+                  header: "Probability",
+                  cell: (r) => (
+                    <Badge variant="light" color={levelColor(r.probability)}>
+                      {cap(r.probability)}
+                    </Badge>
+                  ),
+                },
+                {
+                  header: "Impact",
+                  cell: (r) => (
+                    <Badge variant="light" color={levelColor(r.impact)}>
+                      {cap(r.impact)}
+                    </Badge>
+                  ),
+                },
+                { header: "Due", cell: (r) => fmt(r.due_date) },
+              ]}
+            />
+          </Section>
 
-                <Section title="Open Risks" count={current.risks.length}>
-                  <SimpleTable
-                    rows={current.risks}
-                    empty="No open risks"
-                    detail={(r) =>
-                      richDetails([
-                        ["Description", r.description],
-                        ["Mitigation", r.mitigation],
-                      ])
-                    }
-                    columns={[
-                      { header: "ID", cell: (r) => idCell(r.risk_id) },
-                      { header: "Risk", cell: (r) => bCell(r.title) },
-                      {
-                        header: "Probability",
-                        cell: (r) => (
-                          <Badge
-                            variant="light"
-                            color={levelColor(r.probability)}
-                          >
-                            {cap(r.probability)}
-                          </Badge>
-                        ),
-                      },
-                      {
-                        header: "Impact",
-                        cell: (r) => (
-                          <Badge variant="light" color={levelColor(r.impact)}>
-                            {cap(r.impact)}
-                          </Badge>
-                        ),
-                      },
-                      { header: "Due", cell: (r) => fmt(r.due_date) },
-                    ]}
-                  />
-                </Section>
+          <Section title="Open Action Items" count={current.actions.length}>
+            <SimpleTable
+              rows={current.actions}
+              empty="No open actions"
+              detail={(r) =>
+                richDetails([
+                  ["Description", r.description],
+                  ["Resolution", r.resolution],
+                ])
+              }
+              columns={[
+                { header: "ID", cell: (r) => idCell(r.action_id) },
+                { header: "Action", cell: (r) => bCell(r.title) },
+                {
+                  header: "Priority",
+                  cell: (r) => (
+                    <Badge variant="light" color={levelColor(r.priority)}>
+                      {cap(r.priority)}
+                    </Badge>
+                  ),
+                },
+                { header: "Due", cell: (r) => fmt(r.due_date) },
+                {
+                  header: "Status",
+                  cell: (r) => {
+                    const overdue = !!r.due_date && r.due_date < today();
+                    return (
+                      <Badge variant="light" color={overdue ? "red" : "blue"}>
+                        {overdue ? "Overdue" : cap(r.status)}
+                      </Badge>
+                    );
+                  },
+                },
+              ]}
+            />
+          </Section>
 
-                <Section
-                  title="Open Action Items"
-                  count={current.actions.length}
-                >
-                  <SimpleTable
-                    rows={current.actions}
-                    empty="No open actions"
-                    detail={(r) =>
-                      richDetails([
-                        ["Description", r.description],
-                        ["Resolution", r.resolution],
-                      ])
-                    }
-                    columns={[
-                      { header: "ID", cell: (r) => idCell(r.action_id) },
-                      { header: "Action", cell: (r) => bCell(r.title) },
-                      {
-                        header: "Priority",
-                        cell: (r) => (
-                          <Badge variant="light" color={levelColor(r.priority)}>
-                            {cap(r.priority)}
-                          </Badge>
-                        ),
-                      },
-                      { header: "Due", cell: (r) => fmt(r.due_date) },
-                      {
-                        header: "Status",
-                        cell: (r) => {
-                          const overdue = !!r.due_date && r.due_date < today();
-                          return (
-                            <Badge
-                              variant="light"
-                              color={overdue ? "red" : "blue"}
-                            >
-                              {overdue ? "Overdue" : cap(r.status)}
-                            </Badge>
-                          );
-                        },
-                      },
-                    ]}
-                  />
-                </Section>
+          <Section title="Open Issues" count={current.issues.length}>
+            <SimpleTable
+              rows={current.issues}
+              empty="No open issues"
+              detail={(r) =>
+                richDetails([
+                  ["Description", r.description],
+                  ["Action plan", r.action_plan],
+                  ["Resolution", r.resolution],
+                ])
+              }
+              columns={[
+                { header: "ID", cell: (r) => idCell(r.issue_id) },
+                { header: "Issue", cell: (r) => bCell(r.title) },
+                {
+                  header: "Severity",
+                  cell: (r) => (
+                    <Badge variant="light" color={levelColor(r.severity)}>
+                      {cap(r.severity)}
+                    </Badge>
+                  ),
+                },
+                {
+                  header: "Priority",
+                  cell: (r) => (
+                    <Badge variant="light" color={levelColor(r.priority)}>
+                      {cap(r.priority)}
+                    </Badge>
+                  ),
+                },
+                { header: "Impact", cell: issueImpact },
+                { header: "Status", cell: (r) => yesNo(r.status) },
+                { header: "Opened", cell: (r) => fmt(r.raised_date) },
+                { header: "Target", cell: (r) => fmt(r.target_date) },
+              ]}
+            />
+          </Section>
 
-                <Section title="Open Issues" count={current.issues.length}>
-                  <SimpleTable
-                    rows={current.issues}
-                    empty="No open issues"
-                    detail={(r) =>
-                      richDetails([
-                        ["Description", r.description],
-                        ["Action plan", r.action_plan],
-                        ["Resolution", r.resolution],
-                      ])
-                    }
-                    columns={[
-                      { header: "ID", cell: (r) => idCell(r.issue_id) },
-                      { header: "Issue", cell: (r) => bCell(r.title) },
-                      {
-                        header: "Severity",
-                        cell: (r) => (
-                          <Badge variant="light" color={levelColor(r.severity)}>
-                            {cap(r.severity)}
-                          </Badge>
-                        ),
-                      },
-                      {
-                        header: "Priority",
-                        cell: (r) => (
-                          <Badge variant="light" color={levelColor(r.priority)}>
-                            {cap(r.priority)}
-                          </Badge>
-                        ),
-                      },
-                      { header: "Impact", cell: issueImpact },
-                      { header: "Status", cell: (r) => yesNo(r.status) },
-                      { header: "Opened", cell: (r) => fmt(r.raised_date) },
-                      { header: "Target", cell: (r) => fmt(r.target_date) },
-                    ]}
-                  />
-                </Section>
-
-                <Section
-                  title="Open Dependencies"
-                  count={current.dependencies.length}
-                >
-                  <SimpleTable
-                    rows={current.dependencies}
-                    empty="No open dependencies"
-                    detail={(r) =>
-                      richDetails([
-                        ["Description", r.description],
-                        ["Impact", r.impact],
-                        ["Resolution", r.resolution],
-                      ])
-                    }
-                    columns={[
-                      { header: "ID", cell: (r) => idCell(r.dependency_id) },
-                      { header: "Dependency", cell: (r) => bCell(r.title) },
-                      {
-                        header: "Type",
-                        cell: (r) =>
-                          `${cap(r.dependency_type)} · ${cap(r.direction)}`,
-                      },
-                      {
-                        header: "Priority",
-                        cell: (r) => (
-                          <Badge variant="light" color={levelColor(r.priority)}>
-                            {cap(r.priority)}
-                          </Badge>
-                        ),
-                      },
-                      {
-                        header: "Depends on",
-                        cell: (r) => r.related_party ?? "—",
-                      },
-                      { header: "Needed by", cell: (r) => fmt(r.due_date) },
-                      {
-                        header: "Status",
-                        cell: (r) => (
-                          <Badge
-                            variant="light"
-                            color={r.status === "at_risk" ? "yellow" : "blue"}
-                          >
-                            {cap(r.status)}
-                          </Badge>
-                        ),
-                      },
-                    ]}
-                  />
-                </Section>
-              </>
-            )}
-          </Stack>
-        </Container>
-      </AppShell.Main>
-    </AppShell>
+          <Section
+            title="Open Dependencies"
+            count={current.dependencies.length}
+          >
+            <SimpleTable
+              rows={current.dependencies}
+              empty="No open dependencies"
+              detail={(r) =>
+                richDetails([
+                  ["Description", r.description],
+                  ["Impact", r.impact],
+                  ["Resolution", r.resolution],
+                ])
+              }
+              columns={[
+                { header: "ID", cell: (r) => idCell(r.dependency_id) },
+                { header: "Dependency", cell: (r) => bCell(r.title) },
+                {
+                  header: "Type",
+                  cell: (r) =>
+                    `${cap(r.dependency_type)} · ${cap(r.direction)}`,
+                },
+                {
+                  header: "Priority",
+                  cell: (r) => (
+                    <Badge variant="light" color={levelColor(r.priority)}>
+                      {cap(r.priority)}
+                    </Badge>
+                  ),
+                },
+                {
+                  header: "Depends on",
+                  cell: (r) => r.related_party ?? "—",
+                },
+                { header: "Needed by", cell: (r) => fmt(r.due_date) },
+                {
+                  header: "Status",
+                  cell: (r) => (
+                    <Badge
+                      variant="light"
+                      color={r.status === "at_risk" ? "yellow" : "blue"}
+                    >
+                      {cap(r.status)}
+                    </Badge>
+                  ),
+                },
+              ]}
+            />
+          </Section>
+        </>
+      )}
+    </Stack>,
   );
 }

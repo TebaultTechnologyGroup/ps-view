@@ -13,29 +13,50 @@ import {
   IconFolders,
   IconLayoutDashboard,
   IconLogout,
+  IconReportAnalytics,
   IconSearch,
   IconUser,
   IconUsers,
   IconUsersGroup,
 } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { NavLink as RouterLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/guards/AppContext";
+import { supabase } from "@/lib/supabase-client";
 
 const NAV_ITEMS = [
   { label: "Dashboard", to: "/admin/dashboard", icon: IconLayoutDashboard },
   { label: "Portfolios", to: "/admin/portfolios", icon: IconFolders },
   { label: "Projects", to: "/admin/projects", icon: IconBriefcase },
+  { label: "Reports", to: "/admin/reports", icon: IconReportAnalytics },
   { label: "Customers", to: "/admin/customers", icon: IconBuildingSkyscraper },
   { label: "Users", to: "/admin/users", icon: IconUser },
   { label: "Groups", to: "/admin/groups", icon: IconUsersGroup },
 ];
 
-// TODO: replace with the authenticated user once Supabase auth is implemented
-const currentUser = { name: "Mark Tebault" };
-
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const [name, setName] = useState<string | null>(null);
+
+  // Users can read their own profile row.
+  const userId = user?.userId;
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    supabase
+      .from("users")
+      .select("display_name, full_name, email")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data)
+          setName(data.display_name || data.full_name || data.email);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   const handleLogout = () => {
     signOut();
@@ -68,7 +89,7 @@ export default function AdminLayout() {
             <Group gap={6} wrap="nowrap">
               <IconUser size={18} />
               <Text size="sm" fw={500}>
-                {currentUser.name}
+                {name}
               </Text>
             </Group>
             <Button

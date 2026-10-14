@@ -7,16 +7,20 @@
 import { createClient } from "@supabase/supabase-js";
 
 const admin = () =>
-  createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+    },
+  );
 
-const json = (body: unknown, status = 200) =>
-  Response.json(body, { status });
+const json = (body: unknown, status = 200) => Response.json(body, { status });
 
 // Returns the caller's id if the bearer token belongs to an active CAMUNDA user.
 async function requireCamunda(request: Request) {
   const token = request.headers.get("authorization")?.replace(/^Bearer /i, "");
+
   if (!token) return null;
 
   const db = admin();
@@ -40,8 +44,10 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const { email, password, role, ...profile } = body ?? {};
-  if (!email || !password) return json({ error: "Email and password are required" }, 400);
-  if (role !== "CAMUNDA" && role !== "CUSTOMER") return json({ error: "Invalid role" }, 400);
+  if (!email || !password)
+    return json({ error: "Email and password are required" }, 400);
+  if (role !== "CAMUNDA" && role !== "CUSTOMER")
+    return json({ error: "Invalid role" }, 400);
   if (role === "CUSTOMER" && !profile.customer_id)
     return json({ error: "Customer users need a customer" }, 400);
 
@@ -51,7 +57,8 @@ export async function POST(request: Request) {
     password,
     email_confirm: true,
   });
-  if (error || !data.user) return json({ error: error?.message ?? "Create failed" }, 400);
+  if (error || !data.user)
+    return json({ error: error?.message ?? "Create failed" }, 400);
 
   // The on_auth_user_created trigger has already inserted public.users (id, email).
   const { error: updateError } = await db

@@ -78,3 +78,13 @@ export function RichTextPreview({
     />
   );
 }
+
+// Read-only, sanitized, full-length rich text.
+export function RichText({ html }: { html: string }) {
+  return (
+    <div
+      style={{ fontSize: "var(--mantine-font-size-sm)" }}
+      dangerouslySetInnerHTML={{ __html: sanitize(html) }}
+    />
+  );
+}

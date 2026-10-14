@@ -4,6 +4,7 @@ import {
   Anchor,
   Badge,
   Group,
+  HoverCard,
   Paper,
   Progress,
   SimpleGrid,
@@ -16,6 +17,7 @@ import {
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { RichText } from "@/components/RichTextField";
 import { supabase } from "@/lib/supabase-client";
 
 type Health = "red" | "amber" | "green";
@@ -61,7 +63,13 @@ type ChangeOrderInfo = {
   currency: string;
   estimated_cost_impact: number;
 };
-type ReportInfo = { project_id: string | null; published_at: string | null };
+type ReportInfo = {
+  project_id: string | null;
+  project_status_id: string | null;
+  comments: string | null;
+  range_end: string | null;
+  published_at: string | null;
+};
 
 type Data = {
   projects: ProjectInfo[];
@@ -73,12 +81,15 @@ type Data = {
   milestones: MilestoneInfo[];
   changeOrders: ChangeOrderInfo[];
   reports: ReportInfo[];
+  indicators: Record<string, string>;
 };
 
 type Row = {
   project: ProjectInfo;
   customer: string;
-  health: Health;
+  status: string | null;
+  statusComments: string | null;
+  health: Health | null;
   criticalRisks: number;
   highIssues: number;
   overdueActions: number;
@@ -91,12 +102,42 @@ type Row = {
 };
 
 const STALE_REPORT_DAYS = 14;
+const STATUS_COLOR: Record<string, string> = {
+  onTrack: "green",
+  atRisk: "yellow",
+  blocked: "red",
+  notStarted: "gray",
+  onHold: "orange",
+  canceled: "dark",
+  complete: "teal",
+};
 const HEALTH_COLOR: Record<Health, string> = {
   red: "red",
   amber: "yellow",
   green: "green",
 };
-const HEALTH_ORDER: Record<Health, number> = { red: 0, amber: 1, green: 2 };
+// The dashboard health of a project is its latest reported status.
+// Statuses not listed here (not started, on hold, canceled) and projects with
+// no report count toward none of the red/amber/green buckets.
+const STATUS_HEALTH: Record<string, Health> = {
+  blocked: "red",
+  atRisk: "amber",
+  onTrack: "green",
+  complete: "green",
+};
+const STATUS_ORDER = [
+  "blocked",
+  "atRisk",
+  "onHold",
+  "onTrack",
+  "notStarted",
+  "complete",
+  "canceled",
+];
+const statusRank = (tag: string | null) => {
+  const i = tag ? STATUS_ORDER.indexOf(tag) : -1;
+  return i === -1 ? STATUS_ORDER.length : i;
+};
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const daysBetween = (fromIso: string, toIso: string) =>
@@ -153,7 +194,6 @@ function buildRows(d: Data, today: string): Row[] {
     ).length;
     const ms = miles.get(project.id) ?? [];
     const lateMilestones = ms.filter((m) => isLate(m, today)).length;
-    const atRiskMilestones = ms.filter((m) => m.status === "at_risk").length;
     const atRiskDependencies = (deps.get(project.id) ?? []).filter(
       (x) => x.status === "at_risk",
     ).length;
@@ -178,18 +218,21 @@ function buildRows(d: Data, today: string): Row[] {
       !lastReport ||
       daysBetween(lastReport.slice(0, 10), today) > STALE_REPORT_DAYS;
 
-    // Red: something is already failing or could do serious damage.
-    // Amber: something needs attention. Otherwise green.
-    const health: Health =
-      lateMilestones > 0 || highIssues > 0 || criticalRisks > 0
-        ? "red"
-        : overdueActions > 0 || atRiskMilestones > 0 || atRiskDependencies > 0
-          ? "amber"
-          : "green";
+    // Current status = the report covering the most recent period.
+    let latest: ReportInfo | null = null;
+    for (const x of reports.get(project.id) ?? []) {
+      if (!latest || (x.range_end ?? "") > (latest.range_end ?? "")) latest = x;
+    }
+    const status = latest?.project_status_id
+      ? (d.indicators[latest.project_status_id] ?? null)
+      : null;
+    const health = status ? (STATUS_HEALTH[status] ?? null) : null;
 
     return {
       project,
       customer: d.customers[project.customer_id ?? ""] ?? "",
+      status,
+      statusComments: latest?.comments?.trim() || null,
       health,
       criticalRisks,
       highIssues,
@@ -241,7 +284,7 @@ export default function Dashboard() {
 
   // RLS limits every query to what the signed-in user can see.
   const load = useCallback(async () => {
-    const [p, c, r, i, a, d, m, co, sr] = await Promise.all([
+    const [p, c, r, i, a, d, m, co, sr, ps] = await Promise.all([
       supabase
         .from("projects")
         .select("id, name, customer_id, start_date, end_date")
@@ -273,7 +316,8 @@ export default function Dashboard() {
         .eq("deleted", false),
       supabase
         .from("project_status_reports")
-        .select("project_id, published_at"),
+        .select("project_id, project_status_id, comments, range_end, published_at"),
+      supabase.from("project_status").select("id, locale_tag"),
     ]);
     const err =
       p.error ??
@@ -284,7 +328,8 @@ export default function Dashboard() {
       d.error ??
       m.error ??
       co.error ??
-      sr.error;
+      sr.error ??
+      ps.error;
     setError(err ? err.message : null);
     setData({
       projects: p.data ?? [],
@@ -296,6 +341,9 @@ export default function Dashboard() {
       milestones: m.data ?? [],
       changeOrders: co.data ?? [],
       reports: sr.data ?? [],
+      indicators: Object.fromEntries(
+        (ps.data ?? []).map((x) => [x.id, x.locale_tag]),
+      ),
     });
   }, []);
 
@@ -310,7 +358,7 @@ export default function Dashboard() {
       .filter((r) => includeInactive || isActive(r.project, today))
       .sort(
         (a, b) =>
-          HEALTH_ORDER[a.health] - HEALTH_ORDER[b.health] ||
+          statusRank(a.status) - statusRank(b.status) ||
           (a.project.name ?? "").localeCompare(b.project.name ?? ""),
       );
   }, [data, includeInactive, today]);
@@ -477,7 +525,7 @@ export default function Dashboard() {
             <Table.Tr>
               <Table.Th>{t("dashboard.cols.project")}</Table.Th>
               <Table.Th>{t("dashboard.cols.customer")}</Table.Th>
-              <Table.Th>{t("dashboard.cols.health")}</Table.Th>
+              <Table.Th>{t("dashboard.cols.status")}</Table.Th>
               <Table.Th ta="right">
                 {t("dashboard.cols.criticalRisks")}
               </Table.Th>
@@ -529,9 +577,37 @@ export default function Dashboard() {
                     </Table.Td>
                     <Table.Td>{r.customer}</Table.Td>
                     <Table.Td>
-                      <Badge color={HEALTH_COLOR[r.health]} variant="light">
-                        {t(`dashboard.health.${r.health}`)}
-                      </Badge>
+                      {r.status ? (
+                        <HoverCard
+                          width={320}
+                          shadow="md"
+                          withArrow
+                          openDelay={150}
+                        >
+                          <HoverCard.Target>
+                            <Badge
+                              color={STATUS_COLOR[r.status] ?? "gray"}
+                              variant="light"
+                              style={{ cursor: "help" }}
+                            >
+                              {t(`projectStatus.indicator.${r.status}`)}
+                            </Badge>
+                          </HoverCard.Target>
+                          <HoverCard.Dropdown>
+                            {r.statusComments ? (
+                              <RichText html={r.statusComments} />
+                            ) : (
+                              <Text size="sm" c="dimmed">
+                                {t("dashboard.noStatusText")}
+                              </Text>
+                            )}
+                          </HoverCard.Dropdown>
+                        </HoverCard>
+                      ) : (
+                        <Text size="sm" c="dimmed">
+                          {t("reports.projectReview.noStatus")}
+                        </Text>
+                      )}
                     </Table.Td>
                     <Table.Td>{n(r.criticalRisks)}</Table.Td>
                     <Table.Td>{n(r.highIssues)}</Table.Td>
